@@ -30,6 +30,12 @@ public class territoryHandler : MonoBehaviour
         //disabledColor = new Color32(76, 125, 125, 0);
     }
 
+    public void setTroopNo(int troopAmount)
+    {
+        TerrTxt.text = troopAmount.ToString();
+        territory.troops = troopAmount;
+    }
+
     void OnMouseEnter()
     {
         oldColor = sprite.color;
@@ -45,8 +51,43 @@ public class territoryHandler : MonoBehaviour
 
     void OnMouseUpAsButton()
     {
-        ShowGUI();
+        if (territoryManager.instance.gameState == territoryManager.GameState.Start)
+        {
+            print("test");
+        }
+        else
+        {
+            if (territoryManager.instance.transferReady)
+            {
+                territoryHandler attackerScript = territoryManager.instance.attacker.GetComponent<territoryHandler>();
+                territoryHandler defenderScript = territoryManager.instance.defender.GetComponent<territoryHandler>();
+                if (territory.name == attackerScript.territory.name)
+                {
+                    print("attacker");
+                    if (defenderScript.territory.troops > 1)
+                    {
+                        setTroopNo(attackerScript.territory.troops + 1);
+                        defenderScript.setTroopNo(defenderScript.territory.troops - 1);
+                    }
+                }
+                else if (territory.name == defenderScript.territory.name)
+                {
+                    print("defender");
+                    if (attackerScript.territory.troops > 1)
+                    {
+                        setTroopNo(defenderScript.territory.troops + 1);
+                        attackerScript.setTroopNo(attackerScript.territory.troops - 1);
+                    }
+                }
+
+            }
+            else
+            {
+                ShowAttackGUI();
+            }
+        }
     }
+
     private void OnDrawGizmos()
     {
         territory.name = name;
@@ -58,19 +99,18 @@ public class territoryHandler : MonoBehaviour
         sprite.color = color;
     }
 
-    void ShowGUI()
+    void ShowAttackGUI()
     {
-        string desTxt;
-        string attackUnits;
-        string enemyUnits;
-        desTxt = ("You are attacking " + territory.name + " owned by "
-                  + territory.player.ToString() + " Are you sure you want to attack");
         if (territoryManager.instance.attacking)
         {
+            string desTxt;
+            string attackUnits;
+            string enemyUnits;
+            desTxt = ("You are attacking " + territory.name + " owned by "
+                      + territory.player.ToString() + " Are you sure you want to attack");
             attackUnits = territoryManager.instance.attacker.GetComponent<territoryHandler>().TerrTxt.text;
             enemyUnits = TerrTxt.text;
-            territoryManager.instance.ShowAttackPanel(desTxt, attackUnits, enemyUnits);
-            territoryManager.instance.ShowTargets(name);
+            territoryManager.instance.ShowAttackPanel(desTxt, attackUnits, enemyUnits, name);
         }else
         {
             territoryManager.instance.ShowTargets(name);
