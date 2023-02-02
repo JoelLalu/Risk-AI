@@ -51,7 +51,7 @@ public class territoryHandler : MonoBehaviour
 
     void OnMouseUpAsButton()
     {
-        if (territoryManager.instance.gameState == territoryManager.GameState.Start)
+        if (territoryManager.instance.gameState == territoryManager.GameState.StartSelect)
         {
             var tmInstance = territoryManager.instance;
             tmInstance.transferTarget = tmInstance.territoryDict[territory.name];

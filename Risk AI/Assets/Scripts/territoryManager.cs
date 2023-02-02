@@ -24,13 +24,14 @@ public class territoryManager : MonoBehaviour
 
     public GameObject defender;
     public GameObject attacker;
-    public GameState gameState = GameState.Start;
+    public GameState gameState = GameState.StartSelect;
     public Territory.thePlayers turn = Territory.thePlayers.PLAYER1;
     public int troopsLeft = 120;
 
     public enum GameState
     {
-        Start,
+        StartSelect,
+        StartAssign,
         Fortify,
         Attack,
         Move,
@@ -259,7 +260,7 @@ public class territoryManager : MonoBehaviour
 
     public void StopAction()
     {
-        if (gameState == GameState.Start)
+        if (gameState == GameState.StartSelect)
         {
             territoryHandler terrHandler = transferTarget.GetComponent<territoryHandler>();
             terrHandler.setTroopNo(terrHandler.territory.troops - 1);
@@ -297,6 +298,20 @@ public class territoryManager : MonoBehaviour
         territoryHandler terrHandler = terr.GetComponent<territoryHandler>();
         //terrHandler.TintColor
         //terrHandler.TintColor(terrHandler.oldColor = );
+    }
+
+    public int getTerrtoriesOwnedNo(Territory.thePlayers playername)
+    {
+        int amount = 0;
+        foreach (var terr in territoryList)
+        {
+            Territory.thePlayers terrPlayer = terr.GetComponent<territoryHandler>().territory.getPlayer();
+            if (terrPlayer == playername)
+            {
+                amount += 1;
+            }
+        }
+        return amount;
     }
 
     public void Attack()
@@ -400,7 +415,7 @@ public class territoryManager : MonoBehaviour
 
     public void FinishTransfer()
     {
-        if (gameState == GameState.Start)
+        if (gameState == GameState.StartSelect)
         {
             troopsLeft -= 1;
             turn = nextTurn[turn];
@@ -412,6 +427,16 @@ public class territoryManager : MonoBehaviour
             cancelBtn.SetActive(false);
             transferBtn.SetActive(false);
             showAvailable();
+            if (getTerrtoriesOwnedNo(Territory.thePlayers.UNCLAIMED) == 0)
+            {
+                gameState = GameState.StartAssign;
+                foreach (var terr in territoryList)
+                {
+                    //if terr.GetComponent<territoryHandler>()
+                    //enableTerritory(terr);
+                }
+
+            }
         }
         else
         {
