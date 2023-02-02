@@ -1116,7 +1116,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Middle East
-    player: 0
     troops: 0
   TerrTxt: {fileID: 317082053}
   oldColor:
@@ -1423,7 +1422,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Siberia
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1621625934}
   oldColor:
@@ -1731,7 +1729,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Alberta
-    player: 0
     troops: 0
   TerrTxt: {fileID: 351247628}
   oldColor:
@@ -2133,7 +2130,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Western Australia
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1415826146}
   oldColor:
@@ -2294,7 +2290,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Kamchatka
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1449560220}
   oldColor:
@@ -2470,7 +2465,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Japan
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1076243993}
   oldColor:
@@ -2766,7 +2760,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Eastern US
-    player: 0
     troops: 0
   TerrTxt: {fileID: 855224496}
   oldColor:
@@ -3104,7 +3097,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Great Britain
-    player: 0
     troops: 0
   TerrTxt: {fileID: 808357499}
   oldColor:
@@ -3674,7 +3666,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Egypt
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1230412471}
   oldColor:
@@ -4366,7 +4357,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Quebec
-    player: 0
     troops: 0
   TerrTxt: {fileID: 414206556}
   oldColor:
@@ -4692,7 +4682,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Irkutsk
-    player: 0
     troops: 0
   TerrTxt: {fileID: 102423670}
   oldColor:
@@ -4850,7 +4839,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: East Africa
-    player: 0
     troops: 0
   TerrTxt: {fileID: 8126316}
   oldColor:
@@ -5083,7 +5071,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.050394878, y: 0.049000002}
   m_AnchorMax: {x: 0.125, y: 0.13722587}
-  m_AnchoredPosition: {x: -1.140625, y: -0.9121094}
+  m_AnchoredPosition: {x: -87.01514, y: 134}
   m_SizeDelta: {x: -0.3239994, y: -2.3990002}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &517593110
@@ -5582,11 +5570,18 @@ MonoBehaviour:
   gamePanel: {fileID: 747296018}
   cancelBtn: {fileID: 659269034}
   transferBtn: {fileID: 517593108}
+  playerTxt: {fileID: 1688267993}
+  descriptionTxt: {fileID: 1560740458}
   territoryList: []
   attacking: 0
   transferReady: 0
+  allClaimed: 0
+  transferTarget: {fileID: 0}
   defender: {fileID: 0}
   attacker: {fileID: 0}
+  gameState: 0
+  turn: 1
+  troopsLeft: 120
 --- !u!1 &628730091
 GameObject:
   m_ObjectHideFlags: 0
@@ -6164,7 +6159,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.050394878, y: 0.049000002}
   m_AnchorMax: {x: 0.125, y: 0.13722587}
-  m_AnchoredPosition: {x: -1.140625, y: -0.9121094}
+  m_AnchoredPosition: {x: -87.01514, y: 34}
   m_SizeDelta: {x: -0.3239994, y: -2.3990002}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &659269036
@@ -6213,7 +6208,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 621410279}
         m_TargetAssemblyTypeName: territoryManager, Assembly-CSharp
-        m_MethodName: StopAttack
+        m_MethodName: StopAction
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -6606,13 +6601,14 @@ RectTransform:
   - {fileID: 1147837930}
   - {fileID: 659269035}
   - {fileID: 517593109}
+  - {fileID: 1918873603}
   m_Father: {fileID: 229065939}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0.98200005}
-  m_AnchoredPosition: {x: 0, y: 4.005127}
-  m_SizeDelta: {x: 0, y: 8.0101}
+  m_AnchoredPosition: {x: 11.793945, y: -28.828003}
+  m_SizeDelta: {x: -196.555, y: -57.656}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &747296020
 MonoBehaviour:
@@ -6753,7 +6749,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: North Africa
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1889907371}
   oldColor:
@@ -7456,7 +7451,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Congo
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1066027901}
   oldColor:
@@ -8156,7 +8150,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: India
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1457803726}
   oldColor:
@@ -8319,7 +8312,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Southern Europe
-    player: 0
     troops: 0
   TerrTxt: {fileID: 266631851}
   oldColor:
@@ -8891,7 +8883,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Brazil
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1189834394}
   oldColor:
@@ -9192,7 +9183,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Northwest Territory
-    player: 3
     troops: 0
   TerrTxt: {fileID: 1102630791}
   oldColor:
@@ -9523,7 +9513,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Ontario
-    player: 0
     troops: 0
   TerrTxt: {fileID: 875762990}
   oldColor:
@@ -10106,7 +10095,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Madagascar
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1788337015}
   oldColor:
@@ -10260,7 +10248,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Greenland
-    player: 4
     troops: 0
   TerrTxt: {fileID: 1579632946}
   oldColor:
@@ -10424,7 +10411,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Western Europe
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1115162033}
   oldColor:
@@ -10991,7 +10977,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Ural
-    player: 0
     troops: 0
   TerrTxt: {fileID: 326626069}
   oldColor:
@@ -11425,7 +11410,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Mongolia
-    player: 0
     troops: 0
   TerrTxt: {fileID: 656719626}
   oldColor:
@@ -11592,7 +11576,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Ukraine
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1475277380}
   oldColor:
@@ -12179,7 +12162,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Indonesia
-    player: 0
     troops: 0
   TerrTxt: {fileID: 433325023}
   oldColor:
@@ -13778,7 +13760,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Afghanistan
-    player: 0
     troops: 0
   TerrTxt: {fileID: 196716665}
   oldColor:
@@ -13941,7 +13922,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Peru
-    player: 0
     troops: 0
   TerrTxt: {fileID: 854928826}
   oldColor:
@@ -14102,7 +14082,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Eastern Australia
-    player: 0
     troops: 0
   TerrTxt: {fileID: 513129262}
   oldColor:
@@ -14159,6 +14138,141 @@ PolygonCollider2D:
       - {x: 0.5865364, y: -0.33701935}
       - {x: 0.5865364, y: 0.08067297}
   m_UseDelaunayMesh: 0
+--- !u!1 &1560740456
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1560740457}
+  - component: {fileID: 1560740459}
+  - component: {fileID: 1560740458}
+  m_Layer: 5
+  m_Name: Explanation Text
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1560740457
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1560740456}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1918873603}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 15.024, y: -0.000078321}
+  m_SizeDelta: {x: 838.94, y: 62.912}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1560740458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1560740456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: Start Phase - Select your troops.
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 125cb55b44b24c4393181402bc6200e6, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: 125cb55b44b24c4393181402bc6200e6, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4281874488
+  m_fontColor: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 36
+  m_fontSizeBase: 36
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_enableWordWrapping: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 1
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &1560740459
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1560740456}
+  m_CullTransparentMesh: 1
 --- !u!1 &1579632944
 GameObject:
   m_ObjectHideFlags: 0
@@ -14665,7 +14779,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Venezuela
-    player: 0
     troops: 0
   TerrTxt: {fileID: 342302210}
   oldColor:
@@ -14822,7 +14935,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Argentina
-    player: 0
     troops: 0
   TerrTxt: {fileID: 217439103}
   oldColor:
@@ -14886,6 +14998,141 @@ PolygonCollider2D:
       - {x: 0.1952834, y: -0.8482693}
       - {x: 0.02124493, y: -0.7090385}
   m_UseDelaunayMesh: 0
+--- !u!1 &1688267990
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1688267991}
+  - component: {fileID: 1688267992}
+  - component: {fileID: 1688267993}
+  m_Layer: 5
+  m_Name: PlayerText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1688267991
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1688267990}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1918873603}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -682.52, y: -0.000043389}
+  m_SizeDelta: {x: 556.14, y: 62.912}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &1688267992
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1688267990}
+  m_CullTransparentMesh: 1
+--- !u!114 &1688267993
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1688267990}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: ' Player: Player1'
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 125cb55b44b24c4393181402bc6200e6, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: 125cb55b44b24c4393181402bc6200e6, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 36
+  m_fontSizeBase: 36
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_enableWordWrapping: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 1
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!1 &1730559899
 GameObject:
   m_ObjectHideFlags: 0
@@ -14987,7 +15234,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: New Guinea
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1183524043}
   oldColor:
@@ -15140,7 +15386,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Siam
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1952993809}
   oldColor:
@@ -15435,7 +15680,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Western US
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1130264178}
   oldColor:
@@ -15590,7 +15834,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Alaska
-    player: 2
     troops: 0
   TerrTxt: {fileID: 430391170}
   oldColor:
@@ -15780,7 +16023,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: South Africa
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1427987046}
   oldColor:
@@ -16081,7 +16323,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Yakutsk
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1277098648}
   oldColor:
@@ -16140,6 +16381,81 @@ PolygonCollider2D:
       - {x: 0.24431881, y: -0.2261066}
       - {x: 0.52278036, y: -0.1912989}
   m_UseDelaunayMesh: 0
+--- !u!1 &1918873602
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1918873603}
+  - component: {fileID: 1918873605}
+  - component: {fileID: 1918873604}
+  m_Layer: 5
+  m_Name: RawImage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1918873603
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1918873602}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1560740457}
+  - {fileID: 1688267991}
+  m_Father: {fileID: 747296019}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -13.803, y: 549.975}
+  m_SizeDelta: {x: 1921.182, y: 62.912}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1918873604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1918873602}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.32600567, g: 0.6981132, b: 0.6910782, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Texture: {fileID: 0}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+--- !u!222 &1918873605
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1918873602}
+  m_CullTransparentMesh: 1
 --- !u!1 &1940796084
 GameObject:
   m_ObjectHideFlags: 0
@@ -16241,7 +16557,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Iceland
-    player: 0
     troops: 0
   TerrTxt: {fileID: 678253779}
   oldColor:
@@ -16530,7 +16845,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: China
-    player: 0
     troops: 0
   TerrTxt: {fileID: 1334544995}
   oldColor:
@@ -16698,7 +17012,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Northern Europe
-    player: 0
     troops: 0
   TerrTxt: {fileID: 662839328}
   oldColor:
@@ -16856,7 +17169,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Central America
-    player: 0
     troops: 0
   TerrTxt: {fileID: 128734833}
   oldColor:
@@ -17177,7 +17489,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   territory:
     name: Scandinavia
-    player: 1
     troops: 0
   TerrTxt: {fileID: 1358698560}
   oldColor:

@@ -17,8 +17,19 @@ public class Territory
         PLAYER4
     }
 
-    public thePlayers player;
+    private thePlayers player;
 
     public int troops;
+
+
+    public thePlayers getPlayer()
+    {
+        return player;
+    }
+
+    public void setPlayer(thePlayers playerType)
+    {
+        player = playerType;
+    }
 
 }

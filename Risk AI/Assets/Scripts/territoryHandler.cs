@@ -53,7 +53,17 @@ public class territoryHandler : MonoBehaviour
     {
         if (territoryManager.instance.gameState == territoryManager.GameState.Start)
         {
-            print("test");
+            var tmInstance = territoryManager.instance;
+            tmInstance.transferTarget = tmInstance.territoryDict[territory.name];
+            this.setTroopNo(territory.troops + 1);
+            foreach (var terr in tmInstance.territoryList)
+            {
+                territoryManager.instance.disableTerritory(terr);
+            }
+            tmInstance.transferTarget.GetComponent<territoryHandler>().territory.setPlayer(tmInstance.turn);
+            tmInstance.tintTerritory(tmInstance.transferTarget);
+            tmInstance.cancelBtn.SetActive(true);
+            tmInstance.transferBtn.SetActive(true);
         }
         else
         {
@@ -79,7 +89,6 @@ public class territoryHandler : MonoBehaviour
                         attackerScript.setTroopNo(attackerScript.territory.troops - 1);
                     }
                 }
-
             }
             else
             {
@@ -107,7 +116,7 @@ public class territoryHandler : MonoBehaviour
             string attackUnits;
             string enemyUnits;
             desTxt = ("You are attacking " + territory.name + " owned by "
-                      + territory.player.ToString() + " Are you sure you want to attack");
+                      + territory.getPlayer().ToString() + " Are you sure you want to attack");
             attackUnits = territoryManager.instance.attacker.GetComponent<territoryHandler>().TerrTxt.text;
             enemyUnits = TerrTxt.text;
             territoryManager.instance.ShowAttackPanel(desTxt, attackUnits, enemyUnits, name);
