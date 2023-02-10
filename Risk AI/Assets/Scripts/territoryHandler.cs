@@ -51,23 +51,40 @@ public class territoryHandler : MonoBehaviour
 
     void OnMouseUpAsButton()
     {
-        if (territoryManager.instance.gameState == territoryManager.GameState.StartSelect)
+        var tmInstance = territoryManager.instance;
+        if (tmInstance.gameState == territoryManager.GameState.StartSelect)
         {
-            var tmInstance = territoryManager.instance;
             tmInstance.transferTarget = tmInstance.territoryDict[territory.name];
             this.setTroopNo(territory.troops + 1);
             foreach (var terr in tmInstance.territoryList)
             {
-                territoryManager.instance.disableTerritory(terr);
+                tmInstance.disableTerritory(terr);
             }
             tmInstance.transferTarget.GetComponent<territoryHandler>().territory.setPlayer(tmInstance.turn);
             tmInstance.tintTerritory(tmInstance.transferTarget);
             tmInstance.cancelBtn.SetActive(true);
             tmInstance.transferBtn.SetActive(true);
         }
-        else
+        else if(tmInstance.gameState == territoryManager.GameState.StartAssign)
         {
-            if (territoryManager.instance.transferReady)
+            print("state = startAssign");
+            this.setTroopNo(territory.troops + 1);
+            tmInstance.troopsleft -= 1;
+
+            if (tmInstance.troopsleft == 0)
+            {
+                foreach (var terr in tmInstance.territoryList)
+                {
+                    tmInstance.disableTerritory(terr);
+                }
+                tmInstance.transferBtn.SetActive(true);
+            }
+            tmInstance.cancelBtn.SetActive(true);
+            print(tmInstance.troopsleft);
+        }
+        else if(tmInstance.gameState == territoryManager.GameState.Attack)
+        {
+            if (tmInstance.transferReady)
             {
                 territoryHandler attackerScript = territoryManager.instance.attacker.GetComponent<territoryHandler>();
                 territoryHandler defenderScript = territoryManager.instance.defender.GetComponent<territoryHandler>();

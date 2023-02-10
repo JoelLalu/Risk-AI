@@ -17,6 +17,27 @@ public class territoryManager : MonoBehaviour
     public List<GameObject> territoryList = new List<GameObject>();
     public Dictionary<string, GameObject> territoryDict = new Dictionary<string, GameObject>();
 
+    public Dictionary<Territory.thePlayers, int> playerTroops = new Dictionary<Territory.thePlayers, int>()
+    {
+        {Territory.thePlayers.PLAYER1, 30},
+        {Territory.thePlayers.PLAYER2, 30},
+        {Territory.thePlayers.PLAYER3, 30},
+        {Territory.thePlayers.PLAYER4, 30}
+    };
+
+    private Dictionary<string, List<string>> continentDict = new Dictionary<string, List<string>>()
+    {
+        { "Asia", new List<string> {"Middle East", "Afghanistan", "Ural", "Siberia", "Yakutsk", "Kamchatka",
+                                    "Irkutsk", "China", "Mongolia", "Japan", "India", "Siam" } },
+        { "North America",  new List<string> {"Alaska", "Northwest Territory", "Alberta", "Ontario", "Quebec",
+                                              "Greenland", "Western US", "Eastern US", "Central America" } },
+        { "Europe",  new List<string> { "Great Britain", "Iceland", "Western Europe", "Scandinavia", "Northern Europe",
+                                        "Southern Europe", "Ukraine" } },
+        { "Africa",  new List<string> { "North Africa", "Egypt", "Congo", "East Africa", "South Africa", "Madagascar" } },
+        { "South America",  new List<string> { "Venezuela", "Brazil", "Peru", "Argentina"} },
+        { "Australia",  new List<string> { "Indonesia", "New Guinea", "Western Australia", "Eastern Australia" } },
+    };
+
     public bool attacking = false;
     public bool transferReady = false;
     public bool allClaimed;
@@ -26,7 +47,7 @@ public class territoryManager : MonoBehaviour
     public GameObject attacker;
     public GameState gameState = GameState.StartSelect;
     public Territory.thePlayers turn = Territory.thePlayers.PLAYER1;
-    public int troopsLeft = 120;
+    public int troopsleft = 0;
 
     public enum GameState
     {
@@ -115,6 +136,51 @@ public class territoryManager : MonoBehaviour
             terrHandler.TintColor(new Color32(255, 20, 147, 255));
             terrHandler.oldColor = new Color32(255, 20, 147, 255);
         }
+    }
+
+    public bool isContinentOwned(string continent, Territory.thePlayers player)
+    {
+        bool continentNotOwned = false;
+        List<string> countryList = continentDict[continent];
+        foreach (var terr in countryList)
+        {
+            territoryHandler terrHandler = territoryDict[terr].GetComponent<territoryHandler>();
+            if (continent == "Asia")
+            {
+                terrHandler.TintColor(new Color32(0, 128, 19, 225));
+                terrHandler.oldColor = new Color32(0, 128, 19, 225);
+            }
+            if (continent == "North America")
+            {
+                terrHandler.TintColor(new Color32(127, 255, 212, 225));
+                terrHandler.oldColor = new Color32(127, 255, 212, 225);
+            }
+            if (continent == "Europe")
+            {
+                terrHandler.TintColor(new Color32(65, 105, 225, 225));
+                terrHandler.oldColor = new Color32(65, 105, 225, 225);
+            }
+            if (continent == "Africa")
+            {
+                terrHandler.TintColor(new Color32(178, 34, 34, 255));
+                terrHandler.oldColor = new Color32(178, 34, 34, 255);
+            }
+            if (continent == "South America")
+            {
+                terrHandler.TintColor(new Color32(255, 20, 147, 255));
+                terrHandler.oldColor = new Color32(255, 20, 147, 255);
+            }
+            if (continent == "Australia")
+            {
+                terrHandler.TintColor(new Color32(255, 0, 0, 0));
+                terrHandler.oldColor = new Color32(255, 0, 0, 0);
+            }
+            if (territoryDict[terr].GetComponent<territoryHandler>().territory.getPlayer() != player)
+            {
+                continentNotOwned = true;
+            }
+        }
+        return continentNotOwned;
     }
 
     public void ShowTargets(string selected)
@@ -273,7 +339,27 @@ public class territoryManager : MonoBehaviour
             transferBtn.SetActive(false);
             showAvailable();
         }
-        else
+        else if (gameState == GameState.StartAssign)
+        {
+            territoryHandler terrHandler = transferTarget.GetComponent<territoryHandler>();
+            terrHandler.setTroopNo(terrHandler.territory.troops - 1);
+            foreach (var terr in territoryList)
+            {
+                if (terr.GetComponent<territoryHandler>().territory.getPlayer() == turn)
+                {
+                    enableTerritory(terr);
+                    terr.GetComponent<territoryHandler>().setTroopNo(1);
+                }
+            }
+            troopsleft = playerTroops[turn];
+            cancelBtn.SetActive(false);
+            transferBtn.SetActive(false);
+        }
+        else if (gameState == GameState.Fortify)
+        {
+            print("hi");
+        }
+        else if (gameState == GameState.Attack)
         {
             foreach (var terr in territoryList)
             {
@@ -417,7 +503,7 @@ public class territoryManager : MonoBehaviour
     {
         if (gameState == GameState.StartSelect)
         {
-            troopsLeft -= 1;
+            playerTroops[turn] -= 1;
             turn = nextTurn[turn];
             playerTxt.text = "Player: " + turn.ToString();
             foreach (var terr in territoryList)
@@ -429,16 +515,66 @@ public class territoryManager : MonoBehaviour
             showAvailable();
             if (getTerrtoriesOwnedNo(Territory.thePlayers.UNCLAIMED) == 0)
             {
+                print("GameState Changed!");
                 gameState = GameState.StartAssign;
+                troopsleft = playerTroops[turn];
                 foreach (var terr in territoryList)
                 {
-                    //if terr.GetComponent<territoryHandler>()
-                    //enableTerritory(terr);
+                    if (terr.GetComponent<territoryHandler>().territory.getPlayer() == turn)
+                    {
+                        enableTerritory(terr);
+                    }
                 }
-
             }
         }
-        else
+        else if (gameState == GameState.StartAssign)
+        {
+            print("turn: " + turn);
+            playerTroops[turn]  = troopsleft;
+            turn = nextTurn[turn];
+            troopsleft = playerTroops[turn];
+            playerTxt.text = "Player: " + turn.ToString();
+            foreach (var terr in territoryList)
+            {
+                if (terr.GetComponent<territoryHandler>().territory.getPlayer() == turn)
+                {
+                    enableTerritory(terr);
+                }
+                else
+                {
+                    disableTerritory(terr);
+                }
+            }
+            cancelBtn.SetActive(false);
+            transferBtn.SetActive(false);
+            print("troopsleft" + troopsleft);
+            print("player" + turn);
+            print("playerTroops" + playerTroops[turn]);
+            bool noTroopsLeft = true;
+            foreach (var (key, value) in playerTroops)
+            {
+                if (value != 0)
+                {
+                    noTroopsLeft = false;
+                }
+            }
+            if (noTroopsLeft)
+            {
+                print("GameState Changed!");
+                turn = Territory.thePlayers.PLAYER4;
+                gameState = GameState.Fortify;
+            }
+        }
+        else if(gameState == GameState.Fortify)
+        {
+                isContinentOwned("Asia", turn);
+                isContinentOwned("North America", turn);
+                isContinentOwned("Europe", turn);
+                isContinentOwned("Africa", turn);
+                isContinentOwned("South America", turn);
+                isContinentOwned("Australia", turn);
+        }
+        else if(gameState == GameState.Attack)
         {
             foreach (var terr in territoryList)
             {
