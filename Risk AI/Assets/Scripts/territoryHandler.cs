@@ -67,7 +67,6 @@ public class territoryHandler : MonoBehaviour
         }
         else if(tmInstance.gameState == territoryManager.GameState.StartAssign)
         {
-            print("state = startAssign");
             this.setTroopNo(territory.troops + 1);
             tmInstance.troopsleft -= 1;
 
@@ -80,36 +79,51 @@ public class territoryHandler : MonoBehaviour
                 tmInstance.transferBtn.SetActive(true);
             }
             tmInstance.cancelBtn.SetActive(true);
-            print(tmInstance.troopsleft);
         }
-        else if(tmInstance.gameState == territoryManager.GameState.Attack)
+        else if(tmInstance.gameState == territoryManager.GameState.MainState)
         {
-            if (tmInstance.transferReady)
+            if (tmInstance.gamePhase == territoryManager.GamePhase.Assign)
             {
-                territoryHandler attackerScript = territoryManager.instance.attacker.GetComponent<territoryHandler>();
-                territoryHandler defenderScript = territoryManager.instance.defender.GetComponent<territoryHandler>();
-                if (territory.name == attackerScript.territory.name)
+                this.setTroopNo(territory.troops + 1);
+                tmInstance.troopsleft -= 1;
+
+                if (tmInstance.troopsleft == 0)
                 {
-                    print("attacker");
-                    if (defenderScript.territory.troops > 1)
+                    foreach (var terr in tmInstance.territoryList)
                     {
-                        setTroopNo(attackerScript.territory.troops + 1);
-                        defenderScript.setTroopNo(defenderScript.territory.troops - 1);
+                        tmInstance.disableTerritory(terr);
                     }
+                    tmInstance.transferBtn.SetActive(true);
                 }
-                else if (territory.name == defenderScript.territory.name)
-                {
-                    print("defender");
-                    if (attackerScript.territory.troops > 1)
-                    {
-                        setTroopNo(defenderScript.territory.troops + 1);
-                        attackerScript.setTroopNo(attackerScript.territory.troops - 1);
-                    }
-                }
+                tmInstance.cancelBtn.SetActive(true);
             }
-            else
+            if (tmInstance.gamePhase == territoryManager.GamePhase.Attack)
             {
-                ShowAttackGUI();
+                if (tmInstance.transferReady)
+                {
+                    territoryHandler attackerScript = territoryManager.instance.attacker.GetComponent<territoryHandler>();
+                    territoryHandler defenderScript = territoryManager.instance.defender.GetComponent<territoryHandler>();
+                    if (territory.name == attackerScript.territory.name)
+                    {
+                        if (defenderScript.territory.troops > 1)
+                        {
+                            setTroopNo(attackerScript.territory.troops + 1);
+                            defenderScript.setTroopNo(defenderScript.territory.troops - 1);
+                        }
+                    }
+                    else if (territory.name == defenderScript.territory.name)
+                    {
+                        if (attackerScript.territory.troops > 1)
+                        {
+                            setTroopNo(defenderScript.territory.troops + 1);
+                            attackerScript.setTroopNo(attackerScript.territory.troops - 1);
+                        }
+                    }
+                }
+                else
+                {
+                    ShowAttackGUI();
+                }
             }
         }
     }
