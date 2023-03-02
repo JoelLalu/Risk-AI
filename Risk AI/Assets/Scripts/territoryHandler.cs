@@ -122,7 +122,61 @@ public class territoryHandler : MonoBehaviour
                 }
                 else
                 {
+                    tmInstance.NextPhaseBtn.SetActive(false);
                     ShowAttackGUI();
+                }
+            }
+            if (tmInstance.gamePhase == territoryManager.GamePhase.Fortify)
+            {
+                if (tmInstance.transferReady)
+                {
+                    territoryHandler attackerScript = territoryManager.instance.attacker.GetComponent<territoryHandler>();
+                    territoryHandler defenderScript = territoryManager.instance.defender.GetComponent<territoryHandler>();
+                    if (territory.name == attackerScript.territory.name)
+                    {
+                        if (defenderScript.territory.troops > 1)
+                        {
+                            setTroopNo(attackerScript.territory.troops + 1);
+                            defenderScript.setTroopNo(defenderScript.territory.troops - 1);
+                        }
+                    }
+                    else if (territory.name == defenderScript.territory.name)
+                    {
+                        if (attackerScript.territory.troops > 1)
+                        {
+                            setTroopNo(defenderScript.territory.troops + 1);
+                            attackerScript.setTroopNo(attackerScript.territory.troops - 1);
+                        }
+                    }
+                }
+                else
+                {
+                    if (tmInstance.terrSelected)
+                    {
+                        tmInstance.transferReady = true;
+                        tmInstance.defender = tmInstance.territoryDict[name];
+                        tmInstance.transferTroops(tmInstance.attacker.GetComponent<territoryHandler>().territory.name, name);
+                        tmInstance.transferBtn.SetActive(true);
+                        tmInstance.cancelBtn.SetActive(true);
+                    }
+                    else
+                    {
+                        foreach (var terr in tmInstance.territoryList)
+                        {
+                            tmInstance.disableTerritory(terr);
+                            territoryHandler terrHandler = terr.GetComponent<territoryHandler>();
+                            terrHandler.TintColor(terrHandler.disabledColor);
+                            if (terrHandler.territory.getPlayer() == tmInstance.turn)
+                            {
+                                tmInstance.enableTerritory(terr);
+                            }
+                        }
+                        tmInstance.NextPhaseBtn.SetActive(false);
+                        tmInstance.terrSelected = true;
+                        tmInstance.attacker = tmInstance.territoryDict[territory.name];
+                        tmInstance.disableTerritory(tmInstance.territoryDict[territory.name]);
+                        TintColor(hoverColor);
+                    }
                 }
             }
         }

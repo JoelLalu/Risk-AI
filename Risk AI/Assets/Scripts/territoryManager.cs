@@ -11,8 +11,10 @@ public class territoryManager : MonoBehaviour
     public GameObject gamePanel;
     public GameObject cancelBtn;
     public GameObject transferBtn;
+    public GameObject NextPhaseBtn;
     public TMP_Text playerTxt;
     public TMP_Text descriptionTxt;
+    public bool terrSelected = false;
 
     public List<GameObject> territoryList = new List<GameObject>();
     public Dictionary<string, GameObject> territoryDict = new Dictionary<string, GameObject>();
@@ -107,11 +109,37 @@ public class territoryManager : MonoBehaviour
             territoryHandler terrHandler = territoryList[i].GetComponent<territoryHandler>();
             terrHandler.territory.setPlayer(Territory.thePlayers.UNCLAIMED);
             terrHandler.setTroopNo(0);
-            tintTerritories();
             cancelBtn.SetActive(false);
             transferBtn.SetActive(false);
         }
-
+        tintTerritories();
+        gameState = GameState.MainState;
+        gamePhase = GamePhase.Assign;
+        foreach (var terr in territoryList)
+        {
+            territoryHandler terrhandler = terr.GetComponent<territoryHandler>();
+            int playerNum = UnityEngine.Random.Range(1,5);
+            int troopNum = UnityEngine.Random.Range(1,7);
+            terrhandler.setTroopNo(troopNum);
+            Dictionary<int, Territory.thePlayers> playerDict  = new Dictionary<int, Territory.thePlayers>()
+            {
+                {1, Territory.thePlayers.PLAYER1},
+                {2, Territory.thePlayers.PLAYER2},
+                {3, Territory.thePlayers.PLAYER3},
+                {4, Territory.thePlayers.PLAYER4}
+            };
+            terrhandler.territory.setPlayer(playerDict[playerNum]);
+            addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
+        }
+        eanblePlayerTerr(Territory.thePlayers.PLAYER1);
+        tintTerritories();
+        turn = Territory.thePlayers.PLAYER1;
+        playerTxt.text = "Player: " + turn.ToString();
+        gameState = GameState.MainState;
+        gamePhase = GamePhase.Assign;
+        playerTroops[turn] = newTroopAmount(turn);
+        troopsleft = playerTroops[turn];
+        mapState = saveMapState();
     }
 
     void AddTerritoryData()
@@ -141,26 +169,36 @@ public class territoryManager : MonoBehaviour
         {
             terrHandler.TintColor(new Color32(0, 128, 19, 225));
             terrHandler.oldColor = new Color32(0, 128, 19, 225);
+            terrHandler.disabledColor = terrHandler.oldColor;
+            terrHandler.disabledColor.a = 30;
         }
         if (terrHandler.territory.getPlayer() == Territory.thePlayers.PLAYER1)
         {
             terrHandler.TintColor(new Color32(127, 255, 212, 225));
             terrHandler.oldColor = new Color32(127, 255, 212, 225);
+            terrHandler.disabledColor = terrHandler.oldColor;
+            terrHandler.disabledColor.a = 30;
         }
         if (terrHandler.territory.getPlayer() == Territory.thePlayers.PLAYER2)
         {
             terrHandler.TintColor(new Color32(65, 105, 225, 225));
             terrHandler.oldColor = new Color32(65, 105, 225, 225);
+            terrHandler.disabledColor = terrHandler.oldColor;
+            terrHandler.disabledColor.a = 30;
         }
         if (terrHandler.territory.getPlayer() == Territory.thePlayers.PLAYER3)
         {
             terrHandler.TintColor(new Color32(178, 34, 34, 255));
             terrHandler.oldColor = new Color32(178, 34, 34, 255);
+            terrHandler.disabledColor = terrHandler.oldColor;
+            terrHandler.disabledColor.a = 30;
         }
         if (terrHandler.territory.getPlayer() == Territory.thePlayers.PLAYER4)
         {
             terrHandler.TintColor(new Color32(255, 20, 147, 255));
             terrHandler.oldColor = new Color32(255, 20, 147, 255);
+            terrHandler.disabledColor = terrHandler.oldColor;
+            terrHandler.disabledColor.a = 30;
         }
     }
 
@@ -184,7 +222,7 @@ public class territoryManager : MonoBehaviour
 
     public void ShowTargets(string selected)
     {
-        var attackDict = new Dictionary<string, List<string>>() 
+        Dictionary<string, List<string>> attackDict = new Dictionary<string, List<string>>() 
         {
             { "Alaska", new List<string> {"Kamchatka", "Northwest Territory", "Alberta" } },
             { "Northwest Territory",  new List<string> {  "Alaska", "Alberta", "Ontario", "Greenland" } },
@@ -237,8 +275,8 @@ public class territoryManager : MonoBehaviour
         var surroundTers = attackDict[selected];
         foreach (var terr in territoryList)
         {
-            territoryDict[terr.name].GetComponent<PolygonCollider2D>().enabled = false;
-            territoryHandler terrHandler = territoryDict[terr.name].GetComponent<territoryHandler>();
+            disableTerritory(terr);
+            territoryHandler terrHandler = terr.GetComponent<territoryHandler>();
             terrHandler.TintColor(terrHandler.disabledColor);
         }
         foreach (var terrName in surroundTers) 
@@ -247,9 +285,10 @@ public class territoryManager : MonoBehaviour
             terrHandler.TintColor(terrHandler.oldColor);
             if (terrHandler.territory.getPlayer() != territoryDict[selected].GetComponent<territoryHandler>().territory.getPlayer())
             {
-                territoryDict[terrName].GetComponent<PolygonCollider2D>().enabled = true;
+                enableTerritory(territoryDict[terrName]);
             }
         }
+        
     }
 
     public void ShowAttackPanel(string desciption, string pUnits, string eUnits, string eName)
@@ -377,30 +416,74 @@ public class territoryManager : MonoBehaviour
             if (gamePhase == GamePhase.Assign)
             {
                 restoreMapState(mapState);
-                foreach (var terr in territoryList)
-                {
-                    if (terr.GetComponent<territoryHandler>().territory.getPlayer() == turn)
-                    {
-                        enableTerritory(terr);
-                    }
-                }
+                eanblePlayerTerr(turn);
                 troopsleft = playerTroops[turn];
                 cancelBtn.SetActive(false);
                 transferBtn.SetActive(false);
             }
             else if (gamePhase == GamePhase.Attack)
             {
-                foreach (var terr in territoryList)
-                {
-                    enableTerritory(terr);
-                }
+                eanbleAttackPlayerTerr(turn);
                 cancelBtn.SetActive(false);
+                NextPhaseBtn.SetActive(true);
                 attacking = false;
+                tintTerritories();
                 cleanAttackPanel();
+                gamePanel.SetActive(true);
+                attackPanel.SetActive(false);
             }
             else if(gamePhase == GamePhase.Fortify)
             {
-                
+                restoreMapState(mapState);
+                terrSelected = false;
+                transferReady = false;
+                eanblePlayerTerr(turn);
+                troopsleft = playerTroops[turn];
+                cancelBtn.SetActive(false);
+                transferBtn.SetActive(false);
+                NextPhaseBtn.SetActive(true);
+                tintTerritories();
+                foreach (var terr in territoryList)
+                {
+                    disableTerritory(terr);
+                    territoryHandler terrHandler = terr.GetComponent<territoryHandler>();
+                    terrHandler.TintColor(terrHandler.disabledColor);
+                    if (terrHandler.territory.getPlayer() == turn && terrHandler.territory.troops > 1)
+                    {
+                        enableTerritory(terr);
+                    }
+                }
+            }
+        }
+    }
+
+    public void eanblePlayerTerr(Territory.thePlayers player)
+    {
+        foreach (var terr in territoryList)
+        {
+            if (terr.GetComponent<territoryHandler>().territory.getPlayer() == turn)
+            {
+                enableTerritory(terr);
+            }
+            else
+            {
+                disableTerritory(terr);
+            }
+        }
+    }
+
+    public void eanbleAttackPlayerTerr(Territory.thePlayers player)
+    {
+        foreach (var terr in territoryList)
+        {
+            territoryHandler terrhandler = terr.GetComponent<territoryHandler>();
+            if (terrhandler.territory.getPlayer() == turn && terrhandler.territory.troops >1)
+            {
+                enableTerritory(terr);
+            }
+            else
+            {
+                disableTerritory(terr);
             }
         }
     }
@@ -416,8 +499,7 @@ public class territoryManager : MonoBehaviour
     {
         terr.GetComponent<PolygonCollider2D>().enabled = false;
         territoryHandler terrHandler = terr.GetComponent<territoryHandler>();
-        //terrHandler.TintColor
-        //terrHandler.TintColor(terrHandler.oldColor = );
+        // terrHandler.TintColor(terrHandler.disabledColor);
     }
 
     public int getTerrtoriesOwnedNo(Territory.thePlayers playername)
@@ -527,7 +609,9 @@ public class territoryManager : MonoBehaviour
             pScript.setTroopNo(1);
             transferReady = true;
             transferBtn.SetActive(true);
-            transferTroops();
+            string attackerName = attacker.GetComponent<territoryHandler>().territory.name;
+            string defenderName = defender.GetComponent<territoryHandler>().territory.name;
+            transferTroops(attackerName, defenderName);
         }
 
         gui.attackbtn.enabled = false;
@@ -556,17 +640,7 @@ public class territoryManager : MonoBehaviour
                 turn = Territory.thePlayers.PLAYER1;
                 playerTxt.text = "Player: " + turn.ToString();
                 troopsleft = playerTroops[turn];
-                foreach (var terr in territoryList)
-                {
-                    if (terr.GetComponent<territoryHandler>().territory.getPlayer() == turn)
-                    {
-                        enableTerritory(terr);
-                    }
-                    else
-                    {
-                        disableTerritory(terr);
-                    }
-                }
+                eanblePlayerTerr(turn);
             }
         }
         else if (gameState == GameState.StartAssign)
@@ -575,17 +649,7 @@ public class territoryManager : MonoBehaviour
             turn = nextTurn[turn];
             troopsleft = playerTroops[turn];
             playerTxt.text = "Player: " + turn.ToString();
-            foreach (var terr in territoryList)
-            {
-                if (terr.GetComponent<territoryHandler>().territory.getPlayer() == turn)
-                {
-                    enableTerritory(terr);
-                }
-                else
-                {
-                    disableTerritory(terr);
-                }
-            }
+            eanblePlayerTerr(turn);
             cancelBtn.SetActive(false);
             transferBtn.SetActive(false);
             bool noTroopsLeft = true;
@@ -613,32 +677,62 @@ public class territoryManager : MonoBehaviour
             {
                 playerTroops[turn] = troopsleft;
                 cancelBtn.SetActive(false);
+                transferBtn.SetActive(false);
+                NextPhaseBtn.SetActive(true);
                 gamePhase = GamePhase.Attack;
-                foreach (var terr in territoryList)
-                {
-                    if (terr.GetComponent<territoryHandler>().territory.getPlayer() == turn)
-                    {
-                        enableTerritory(terr);
-                    }
-                    else
-                    {
-                        disableTerritory(terr);
-                    }
-                }
+                print(gamePhase);
+                eanbleAttackPlayerTerr(turn);
+                tintTerritories();
             }
             else if(gamePhase == GamePhase.Attack)
             {
-                foreach (var terr in territoryList)
-                {
-                    enableTerritory(terr);
-                }
+                eanbleAttackPlayerTerr(turn);
                 transferReady = false;
                 transferBtn.SetActive(false);
+                NextPhaseBtn.SetActive(true);
+                tintTerritories();
             }
             else if(gamePhase == GamePhase.Fortify)
             {
-                
+                nextPhase();
             }
+        }
+    }
+
+    public void nextPhase()
+    {
+        if (gamePhase == GamePhase.Attack)
+        {
+            gamePhase = GamePhase.Fortify;
+            eanblePlayerTerr(turn);
+            foreach (var terr in territoryList)
+            {
+                disableTerritory(terr);
+                territoryHandler terrHandler = terr.GetComponent<territoryHandler>();
+                terrHandler.TintColor(terrHandler.disabledColor);
+                if (terrHandler.territory.getPlayer() == turn && terrHandler.territory.troops > 1)
+                {
+                    enableTerritory(terr);
+                }
+            }
+            mapState = saveMapState();
+
+        }
+        else if (gamePhase == GamePhase.Fortify)
+        {
+            turn = nextTurn[turn];
+            playerTxt.text = "Player: " + turn.ToString();
+            eanblePlayerTerr(turn);
+            terrSelected = false;
+            transferReady = false;
+            transferBtn.SetActive(false);
+            cancelBtn.SetActive(false);
+            NextPhaseBtn.SetActive(false);
+            gamePhase = GamePhase.Assign;
+            playerTroops[turn] = newTroopAmount(turn);
+            troopsleft = playerTroops[turn];
+            mapState = saveMapState();
+            tintTerritories();
         }
     }
 
@@ -701,19 +795,18 @@ public class territoryManager : MonoBehaviour
         StopAction();
     }
 
-    public void transferTroops()
+    public void transferTroops(string TerritoryA, string TerritoryB)
     {
         attacking = false;
         gamePanel.SetActive(true);
         attackPanel.SetActive(false);
-        string attackerName = attacker.GetComponent<territoryHandler>().territory.name;
-        string defenderName = defender.GetComponent<territoryHandler>().territory.name;
         foreach (var terr in territoryList)
         {
             disableTerritory(terr);
+            terr.GetComponent<territoryHandler>().TintColor(terr.GetComponent<territoryHandler>().disabledColor);
         }
-        enableTerritory(territoryDict[attackerName]);
-        enableTerritory(territoryDict[defenderName]);
+        enableTerritory(territoryDict[TerritoryA]);
+        enableTerritory(territoryDict[TerritoryB]);
         cancelBtn.SetActive(false);
         attacking = false;
         cleanAttackPanel();
