@@ -5071,7 +5071,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.050394878, y: 0.049000002}
   m_AnchorMax: {x: 0.125, y: 0.13722587}
-  m_AnchoredPosition: {x: -87.015076, y: 127.99988}
+  m_AnchoredPosition: {x: -87.015015, y: 127.99988}
   m_SizeDelta: {x: -0.3239994, y: -2.3990002}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &517593110
@@ -5574,6 +5574,7 @@ MonoBehaviour:
   playerTxt: {fileID: 1688267993}
   descriptionTxt: {fileID: 1560740458}
   terrSelected: 0
+  gameover: 0
   territoryList: []
   attacking: 0
   transferReady: 0
@@ -5585,6 +5586,7 @@ MonoBehaviour:
   gamePhase: 0
   turn: 1
   troopsleft: 0
+  playerList: 01000000020000000300000004000000
 --- !u!1 &628730091
 GameObject:
   m_ObjectHideFlags: 0
@@ -5757,7 +5759,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.050394878, y: 0.049000002}
   m_AnchorMax: {x: 0.125, y: 0.13722587}
-  m_AnchoredPosition: {x: -87.01514, y: -0.000061035156}
+  m_AnchoredPosition: {x: -87.01526, y: -0.000061035156}
   m_SizeDelta: {x: -0.3239994, y: -2.3990002}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &634461156
@@ -6296,7 +6298,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.050394878, y: 0.049000002}
   m_AnchorMax: {x: 0.125, y: 0.13722587}
-  m_AnchoredPosition: {x: -86.99597, y: -0.000061035156}
+  m_AnchoredPosition: {x: -86.99609, y: -0.000061035156}
   m_SizeDelta: {x: -0.3239994, y: -2.3990002}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &659269036
@@ -6745,7 +6747,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0.98200005}
-  m_AnchoredPosition: {x: 11.793945, y: -28.828003}
+  m_AnchoredPosition: {x: 11.793945, y: -28.828064}
   m_SizeDelta: {x: -196.555, y: -57.656}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &747296020
@@ -8087,7 +8089,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.57875013, y: 0.0781148}
   m_AnchorMax: {x: 0.67625, y: 0.19800001}
-  m_AnchoredPosition: {x: -885.0399, y: -1}
+  m_AnchoredPosition: {x: -885.03986, y: -1}
   m_SizeDelta: {x: 1.5672989, y: 1.9953003}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &944698152
@@ -16691,7 +16693,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.92300004}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -13.803101, y: 88.47502}
+  m_AnchoredPosition: {x: -13.803101, y: 88.475006}
   m_SizeDelta: {x: 199.182, y: -14.088013}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1918873604

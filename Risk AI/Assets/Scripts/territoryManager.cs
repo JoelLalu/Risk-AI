@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Unity.Mathematics;
+
 public class territoryManager : MonoBehaviour
 {
-
     public static territoryManager instance;
 
     public GameObject attackPanel;
@@ -15,6 +15,7 @@ public class territoryManager : MonoBehaviour
     public TMP_Text playerTxt;
     public TMP_Text descriptionTxt;
     public bool terrSelected = false;
+    public bool gameover = false;
 
     public List<GameObject> territoryList = new List<GameObject>();
     public Dictionary<string, GameObject> territoryDict = new Dictionary<string, GameObject>();
@@ -40,7 +41,7 @@ public class territoryManager : MonoBehaviour
         playerTerritories[player].Add(territoryName);
     }
 
-    public void removeTerr(Territory.thePlayers player, string territoryName)
+    public void removeTerrToPlayer(Territory.thePlayers player, string territoryName)
     {
         playerTerritories[player].Remove(territoryName);
     }
@@ -72,6 +73,12 @@ public class territoryManager : MonoBehaviour
     public Dictionary<string, int> mapState = new  Dictionary<string, int>(){};
     public int troopsleft = 0;
 
+    public List<Territory.thePlayers> playerList =  new List<Territory.thePlayers> 
+        {Territory.thePlayers.PLAYER1,
+         Territory.thePlayers.PLAYER2,
+         Territory.thePlayers.PLAYER3,
+         Territory.thePlayers.PLAYER4};
+
     public enum GameState
     {
         StartSelect,
@@ -93,6 +100,47 @@ public class territoryManager : MonoBehaviour
         { Territory.thePlayers.PLAYER3, Territory.thePlayers.PLAYER4 },
         { Territory.thePlayers.PLAYER4, Territory.thePlayers.PLAYER1 }
     };
+    public Dictionary<Territory.thePlayers, Color32> nextTurnColor = new Dictionary<Territory.thePlayers, Color32>()
+    {
+        { Territory.thePlayers.PLAYER1, new Color32(127, 255, 212, 225) },
+        { Territory.thePlayers.PLAYER2, new Color32(65, 105, 225, 225) },
+        { Territory.thePlayers.PLAYER3, new Color32(178, 34, 34, 255) },
+        { Territory.thePlayers.PLAYER4, new Color32(255, 20, 147, 255) }
+    };
+
+    public void removePlayer(Territory.thePlayers player)
+    {
+        if (playerList.Count ==1)
+        {
+            print("no more players");
+        }
+        else if ((playerList.Count ==2))
+        {
+            playerList.Remove(player);
+            print(playerList[0] + " you won");
+            gameover = true;           
+        }
+        else{
+            playerList.Remove(player);
+        }
+        var dictCorrection = new Dictionary<Territory.thePlayers, Territory.thePlayers>();
+        for (int i = 0; i < playerList.Count; i++)
+        {
+            if(i==playerList.Count -1)
+            {
+                dictCorrection.Add(playerList[i], playerList[0]);
+            }
+            else
+            {
+                dictCorrection.Add(playerList[i], playerList[i+1]);
+            }
+        }
+        nextTurn = dictCorrection;
+        foreach (var (key, value) in nextTurn)
+        {
+                print(key + "test" + value);
+        }
+    }
 
     private void Awake()
     {
@@ -125,12 +173,16 @@ public class territoryManager : MonoBehaviour
             {
                 {1, Territory.thePlayers.PLAYER1},
                 {2, Territory.thePlayers.PLAYER2},
-                {3, Territory.thePlayers.PLAYER3},
-                {4, Territory.thePlayers.PLAYER4}
+                {3, Territory.thePlayers.PLAYER2},
+                {4, Territory.thePlayers.PLAYER2}
             };
             terrhandler.territory.setPlayer(playerDict[playerNum]);
             addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
         }
+        playerTerritories.Remove(Territory.thePlayers.PLAYER3);
+        playerTerritories.Remove(Territory.thePlayers.PLAYER4);
+        removePlayer(Territory.thePlayers.PLAYER3);
+        removePlayer(Territory.thePlayers.PLAYER4);
         eanblePlayerTerr(Territory.thePlayers.PLAYER1);
         tintTerritories();
         turn = Territory.thePlayers.PLAYER1;
@@ -602,16 +654,62 @@ public class territoryManager : MonoBehaviour
         }
         if (gui.EUnitValue == 0)
         {
-            eScript.territory.setPlayer(pScript.territory.getPlayer());
-            eScript.oldColor = pScript.oldColor;
-            eScript.hoverColor = eScript.oldColor;
-            eScript.setTroopNo(pScript.territory.troops - 1);
-            pScript.setTroopNo(1);
-            transferReady = true;
-            transferBtn.SetActive(true);
-            string attackerName = attacker.GetComponent<territoryHandler>().territory.name;
-            string defenderName = defender.GetComponent<territoryHandler>().territory.name;
-            transferTroops(attackerName, defenderName);
+            removeTerrToPlayer(eScript.territory.getPlayer(), eScript.territory.name);
+            List<Territory.thePlayers> removals = new List<Territory.thePlayers>();                    
+            foreach (var key in playerTerritories.Keys)
+            {
+                if(playerTerritories[key].Count == 0){
+                    print(key + "test");
+                    print(string.Format("Here's the list: ({0}).", string.Join(", ", playerTerritories[key])));
+                    removals.Add(eScript.territory.getPlayer());
+                }
+            }
+            foreach(var person in removals)
+            {
+                removePlayer(person);
+                playerTerritories.Remove(person);
+            }
+            if (gameover) 
+            {
+                eScript.territory.setPlayer(pScript.territory.getPlayer());
+                addTerrToPlayer(pScript.territory.getPlayer(), eScript.territory.name);
+                eScript.oldColor = pScript.oldColor;
+                eScript.hoverColor = eScript.oldColor;
+                eScript.setTroopNo(pScript.territory.troops - 1);
+                pScript.setTroopNo(1);
+                transferReady = true;
+                transferBtn.SetActive(true);
+                string attackerName = attacker.GetComponent<territoryHandler>().territory.name;
+                string defenderName = defender.GetComponent<territoryHandler>().territory.name;
+                attacking = false;
+                tintTerritories();
+                cleanAttackPanel();
+                gamePanel.SetActive(true);
+                attackPanel.SetActive(false);
+                descriptionTxt.text = playerList[0] + " has Won";
+                foreach (var terr in territoryList)
+                {
+                    disableTerritory(terr);
+                }
+                
+                cancelBtn.SetActive(false);
+                transferBtn.SetActive(false);
+                NextPhaseBtn.SetActive(false);
+            }
+            else
+            {
+                eScript.territory.setPlayer(pScript.territory.getPlayer());
+                addTerrToPlayer(pScript.territory.getPlayer(), eScript.territory.name);
+                eScript.oldColor = pScript.oldColor;
+                eScript.hoverColor = eScript.oldColor;
+                eScript.setTroopNo(pScript.territory.troops - 1);
+                pScript.setTroopNo(1);
+                transferReady = true;
+                transferBtn.SetActive(true);
+                string attackerName = attacker.GetComponent<territoryHandler>().territory.name;
+                string defenderName = defender.GetComponent<territoryHandler>().territory.name;
+                transferTroops(attackerName, defenderName);                
+            }
         }
 
         gui.attackbtn.enabled = false;
@@ -626,6 +724,7 @@ public class territoryManager : MonoBehaviour
             addTerrToPlayer(turn, transferTarget.GetComponent<territoryHandler>().territory.name);
             playerTroops[turn] -= 1;
             turn = nextTurn[turn];
+            playerTxt.color = nextTurnColor[turn];
             playerTxt.text = "Player: " + turn.ToString();
             foreach (var terr in territoryList)
             {
@@ -648,6 +747,7 @@ public class territoryManager : MonoBehaviour
             playerTroops[turn]  = troopsleft;
             turn = nextTurn[turn];
             troopsleft = playerTroops[turn];
+            playerTxt.color = nextTurnColor[turn];
             playerTxt.text = "Player: " + turn.ToString();
             eanblePlayerTerr(turn);
             cancelBtn.SetActive(false);
@@ -664,6 +764,7 @@ public class territoryManager : MonoBehaviour
             {
                 turn = Territory.thePlayers.PLAYER1;
                 playerTxt.text = "Player: " + turn.ToString();
+                descriptionTxt.text = "Assign you troops to prepare to attack";
                 gameState = GameState.MainState;
                 gamePhase = GamePhase.Assign;
                 playerTroops[turn] = newTroopAmount(turn);
@@ -678,6 +779,7 @@ public class territoryManager : MonoBehaviour
                 playerTroops[turn] = troopsleft;
                 cancelBtn.SetActive(false);
                 transferBtn.SetActive(false);
+                descriptionTxt.text = "Select you territory then a territory to attack";
                 NextPhaseBtn.SetActive(true);
                 gamePhase = GamePhase.Attack;
                 print(gamePhase);
@@ -703,6 +805,7 @@ public class territoryManager : MonoBehaviour
     {
         if (gamePhase == GamePhase.Attack)
         {
+            descriptionTxt.text = "Select territory to Fortify";
             gamePhase = GamePhase.Fortify;
             eanblePlayerTerr(turn);
             foreach (var terr in territoryList)
@@ -720,7 +823,9 @@ public class territoryManager : MonoBehaviour
         }
         else if (gamePhase == GamePhase.Fortify)
         {
+            descriptionTxt.text = "Assign you troops to prepare to attack";
             turn = nextTurn[turn];
+            playerTxt.color = nextTurnColor[turn];
             playerTxt.text = "Player: " + turn.ToString();
             eanblePlayerTerr(turn);
             terrSelected = false;
