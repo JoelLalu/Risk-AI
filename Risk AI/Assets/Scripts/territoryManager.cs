@@ -1,7 +1,11 @@
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using TMPro;
 using Unity.Mathematics;
+using UnityEngine.SceneManagement;
+using System.Linq;
+
 
 public class territoryManager : MonoBehaviour
 {
@@ -16,6 +20,13 @@ public class territoryManager : MonoBehaviour
     public TMP_Text descriptionTxt;
     public bool terrSelected = false;
     public bool gameover = false;
+
+    public bool AIGameStart = false;
+    public bool assignTroopsAI = false;
+    public bool startAttackAI = false;
+    public bool fortifyTerritoriesAI = false;
+
+
 
     public List<GameObject> territoryList = new List<GameObject>();
     public Dictionary<string, GameObject> territoryDict = new Dictionary<string, GameObject>();
@@ -57,6 +68,52 @@ public class territoryManager : MonoBehaviour
         { "Africa",  new List<string> { "North Africa", "Egypt", "Congo", "East Africa", "South Africa", "Madagascar" } },
         { "South America",  new List<string> { "Venezuela", "Brazil", "Peru", "Argentina"} },
         { "Australia",  new List<string> { "Indonesia", "New Guinea", "Western Australia", "Eastern Australia" } },
+    };
+
+    Dictionary<string, List<string>> attackDict = new Dictionary<string, List<string>>() 
+    {
+        { "Alaska", new List<string> {"Kamchatka", "Northwest Territory", "Alberta" } },
+        { "Northwest Territory",  new List<string> {  "Alaska", "Alberta", "Ontario", "Greenland" } },
+        { "Greenland",  new List<string> { "Northwest Territory", "Iceland", "Ontario", "Quebec" } },
+        { "Scandinavia",  new List<string> { "Iceland", "Great Britain", "Ukraine", } },
+        { "Siberia",  new List<string> { "Ural", "Yakutsk", "Irkutsk",  "China", "Mongolia" } },
+        { "Yakutsk",  new List<string> { "Siberia", "Irkutsk", "Kamchatka" } },
+        { "Kamchatka",  new List<string> { "Yakutsk", "Irkutsk", "Mongolia", "Alaska", "Japan" } },
+        { "Alberta",  new List<string> { "Alaska", "Northwest Territory", "Ontario", "Western US" } },
+        { "Ontario",  new List<string> { "Western US", "Eastern US", "Quebec", "Alberta", "Northwest Territory", "Greenland" } },
+        { "Quebec",  new List<string> { "Ontario", "Eastern US", "Greenland" } },
+        { "Iceland",  new List<string> { "Greenland", "Scandinavia", "Great Britain" } },
+        { "Ukraine",  new List<string> { "Scandinavia", "Ural", "Afghanistan", "Southern Europe", "Middle East", "Northern Europe" } },
+        { "Ural",  new List<string> { "Ukraine", "Afghanistan", "China", "Siberia" } },
+        { "Western US",  new List<string> { "Eastern US", "Alberta", "Ontario" , "Central America", } },
+        { "Eastern US",  new List<string> { "Ontario",  "Western US", "Central America", "Quebec" } },
+        { "Great Britain",  new List<string> { "Iceland", "Scandinavia", "Northern Europe", "Western Europe"  } },
+        { "Irkutsk",  new List<string> { "Siberia", "Yakutsk", "Kamchatka", "Mongolia" } },
+        { "Japan",  new List<string> { "Mongolia", "Kamchatka" } },
+        { "Western Europe",  new List<string> { "Northern Europe", "Southern Europe", "Great Britain" } },
+        { "Northern Europe",  new List<string> { "Southern Europe", "Great Britain", "Ukraine", "Western Europe" } },
+        { "Afghanistan",  new List<string> { "Ukraine", "Ural", "China", "India", "Middle East" } },
+        { "Mongolia",  new List<string> { "Japan", "Kamchatka" , "Irkutsk", "China", "Siberia" } },
+        { "Central America",  new List<string> { "Western US", "Eastern US", "Venezuela" } },
+        { "Venezuela",  new List<string> { "Central America", "Brazil", "Peru" } },
+        { "Southern Europe",  new List<string> { "Western Europe", "Northern Europe", "Ukraine", "Middle East", "Egypt" } },
+        { "Middle East",  new List<string> { "Ukraine", "Southern Europe", "Afghanistan",  "India", "Egypt", "East Africa" } },
+        { "China",  new List<string> { "India", "Siam", "Afghanistan", "Ural", "Siberia", "Mongolia"} },
+        { "Peru",  new List<string> { "Venezuela", "Brazil", "Argentina"} },
+        { "Brazil",  new List<string> { "Venezuela", "Peru", "Argentina", "North Africa" } },
+        { "North Africa",  new List<string> { "Brazil", "Congo", "East Africa", "Egypt", } },
+        { "Egypt",  new List<string> { "Southern Europe", "East Africa", "North Africa", "Middle East" } },
+        { "India",  new List<string> { "Siam", "China", "Afghanistan", "Middle East" } },
+        { "Siam",  new List<string> { "India", "China", "Indonesia" } },
+        { "Indonesia",  new List<string> { "Siam", "New Guinea", "Western Australia"} },
+        { "New Guinea",  new List<string> { "Indonesia", "Eastern Australia", } },
+        { "Argentina",  new List<string> { "Peru", "Brazil"} },
+        { "Congo",  new List<string> { "North Africa", "East Africa", "South Africa"} },
+        { "East Africa",  new List<string> { "Egypt", "North Africa", "Congo", "South Africa", "Madagascar", "Middle East" } },
+        { "Western Australia",  new List<string> { "Indonesia", "Eastern Australia" } },
+        { "Eastern Australia",  new List<string> { "New Guinea", "Western Australia" } },
+        { "South Africa",  new List<string> { "Congo", "East Africa" } },
+        { "Madagascar",  new List<string> { "East Africa" } }
     };
 
     public bool attacking = false;
@@ -142,6 +199,30 @@ public class territoryManager : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        if (AIGameStart == true){
+            AIGameStart = false;
+            assignTroopsAI = true;
+        }
+
+        if (assignTroopsAI == true) {
+            assignTroopsAI = false;
+            StartCoroutine(AIAsignLogic());
+        }
+
+        if (startAttackAI == true) {
+            startAttackAI = false;
+            StartCoroutine(AIAttackLogic());
+        }
+        
+        if (fortifyTerritoriesAI == true) {
+            fortifyTerritoriesAI = false;
+            StartCoroutine(AIAttackLogic());
+        }
+        
+    }
+
     private void Awake()
     {
         instance = this;
@@ -149,49 +230,319 @@ public class territoryManager : MonoBehaviour
 
     void Start()
     {
+    Scene currentScene = SceneManager.GetActiveScene ();
         playerTxt.text = "Player: " + turn.ToString();
         attackPanel.SetActive(false);
         AddTerritoryData();
-        for (int i = 0; i < territoryList.Count; i++)
+        //start code
+        if(currentScene.name == "Game")
         {
-            territoryHandler terrHandler = territoryList[i].GetComponent<territoryHandler>();
-            terrHandler.territory.setPlayer(Territory.thePlayers.UNCLAIMED);
-            terrHandler.setTroopNo(0);
-            cancelBtn.SetActive(false);
-            transferBtn.SetActive(false);
-        }
-        tintTerritories();
-        gameState = GameState.MainState;
-        gamePhase = GamePhase.Assign;
-        foreach (var terr in territoryList)
-        {
-            territoryHandler terrhandler = terr.GetComponent<territoryHandler>();
-            int playerNum = UnityEngine.Random.Range(1,5);
-            int troopNum = UnityEngine.Random.Range(1,7);
-            terrhandler.setTroopNo(troopNum);
-            Dictionary<int, Territory.thePlayers> playerDict  = new Dictionary<int, Territory.thePlayers>()
+            //code to generate game states at start of run
+            for (int i = 0; i < territoryList.Count; i++)
             {
-                {1, Territory.thePlayers.PLAYER1},
-                {2, Territory.thePlayers.PLAYER2},
-                {3, Territory.thePlayers.PLAYER2},
-                {4, Territory.thePlayers.PLAYER2}
-            };
-            terrhandler.territory.setPlayer(playerDict[playerNum]);
-            addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
+                territoryHandler terrHandler = territoryList[i].GetComponent<territoryHandler>();
+                terrHandler.territory.setPlayer(Territory.thePlayers.UNCLAIMED);
+                terrHandler.setTroopNo(0);
+                cancelBtn.SetActive(false);
+                transferBtn.SetActive(false);
+            }
+            tintTerritories();
+            gameState = GameState.MainState;
+            gamePhase = GamePhase.Assign;
+            foreach (var terr in territoryList)
+            {
+                territoryHandler terrhandler = terr.GetComponent<territoryHandler>();
+                int playerNum = UnityEngine.Random.Range(1,5);
+                int troopNum = UnityEngine.Random.Range(1,7);
+                terrhandler.setTroopNo(troopNum);
+                Dictionary<int, Territory.thePlayers> playerDict  = new Dictionary<int, Territory.thePlayers>()
+                {
+                    {1, Territory.thePlayers.PLAYER1},
+                    {2, Territory.thePlayers.PLAYER2},
+                    {3, Territory.thePlayers.PLAYER3},
+                    {4, Territory.thePlayers.PLAYER4}
+                };
+                terrhandler.territory.setPlayer(playerDict[playerNum]);
+                addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
+            }
+            playerTerritories.Remove(Territory.thePlayers.PLAYER3);
+            playerTerritories.Remove(Territory.thePlayers.PLAYER4);
+            eanblePlayerTerr(Territory.thePlayers.PLAYER1);
+            tintTerritories();
+            turn = Territory.thePlayers.PLAYER1;
+            playerTxt.text = "Player: " + turn.ToString();
+            gameState = GameState.MainState;
+            gamePhase = GamePhase.Assign;
+            playerTroops[turn] = newTroopAmount(turn);
+            troopsleft = playerTroops[turn];
+            mapState = saveMapState();  
         }
-        playerTerritories.Remove(Territory.thePlayers.PLAYER3);
-        playerTerritories.Remove(Territory.thePlayers.PLAYER4);
-        removePlayer(Territory.thePlayers.PLAYER3);
-        removePlayer(Territory.thePlayers.PLAYER4);
-        eanblePlayerTerr(Territory.thePlayers.PLAYER1);
-        tintTerritories();
-        turn = Territory.thePlayers.PLAYER1;
-        playerTxt.text = "Player: " + turn.ToString();
-        gameState = GameState.MainState;
-        gamePhase = GamePhase.Assign;
-        playerTroops[turn] = newTroopAmount(turn);
-        troopsleft = playerTroops[turn];
-        mapState = saveMapState();
+        else if (currentScene.name == "GameAI")
+        {
+            foreach (var terr in territoryList)
+            {
+                territoryHandler terrhandler = terr.GetComponent<territoryHandler>();
+                int playerNum = UnityEngine.Random.Range(1,5);
+                int troopNum = UnityEngine.Random.Range(1,7);
+                terrhandler.setTroopNo(troopNum);
+                Dictionary<int, Territory.thePlayers> playerDict  = new Dictionary<int, Territory.thePlayers>()
+                {
+                    {1, Territory.thePlayers.PLAYER1},
+                    {2, Territory.thePlayers.PLAYER2},
+                    {3, Territory.thePlayers.PLAYER3},
+                    {4, Territory.thePlayers.PLAYER4}
+                };
+                terrhandler.territory.setPlayer(playerDict[playerNum]);
+                addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
+                disableTerritory(terr);
+            }
+            turn = Territory.thePlayers.PLAYER1;
+            playerTxt.text = "Player: " + turn.ToString();
+            gameState = GameState.MainState;
+            gamePhase = GamePhase.Assign;
+            playerTroops[turn] = newTroopAmount(turn);
+            troopsleft = playerTroops[turn];
+            tintTerritories();
+            AIGameStart = true;
+        }
+    }
+
+    
+    IEnumerator AIAsignLogic()
+    {
+        if (gameState == GameState.MainState)
+        {
+            yield return new WaitForSeconds(2);
+            if (gamePhase == GamePhase.Assign)
+            {
+                List<string> ownedterritories = new List<string>();
+                ownedterritories = playerTerritories[turn];
+                string largestTerritory = ownedterritories[0];
+                for (int counter = 0; counter < ownedterritories.Count; counter++)
+                {
+
+                    territoryHandler pScript = territoryDict[ownedterritories[counter]].GetComponent<territoryHandler>();
+                    territoryHandler largestTScript = territoryDict[largestTerritory].GetComponent<territoryHandler>();
+                    if (pScript.territory.troops > largestTScript.territory.troops)
+                    {
+                        largestTerritory = pScript.territory.name;
+                    }
+                }
+                print(troopsleft + " troops assigned to " + largestTerritory);
+                AIAssign(largestTerritory, troopsleft);
+                gamePhase = GamePhase.Attack;
+                startAttackAI = true;
+            }
+        }
+    }
+
+    IEnumerator AIAttackLogic()
+    {
+        if (gameState == GameState.MainState)
+        {
+            if (gamePhase == GamePhase.Attack)
+            {
+                List<string> ownedterritories = new List<string>();
+                ownedterritories = playerTerritories[turn];
+                for (int i = 0; i < ownedterritories.Count; i++)
+                {
+                    territoryHandler pScript = territoryDict[ownedterritories[i]].GetComponent<territoryHandler>();
+                    if (pScript.territory.troops > 1)
+                    {
+                        List<string> attacktargets = attackDict[ownedterritories[i]];
+                        List<GameObject> desiredTargetList = new List<GameObject>();
+                        List<string> sortedTerrsString = new List<string>();
+                        foreach (var eterr in attacktargets)
+                        {
+                            territoryHandler eScript = territoryDict[eterr].GetComponent<territoryHandler>();
+                            if (pScript.territory.troops > eScript.territory.troops)
+                            {
+                                desiredTargetList.Add(territoryDict[eterr]);
+                                var sortedTerrs = desiredTargetList.OrderBy(o => o.GetComponent<territoryHandler>().territory.troops).ToList();
+                                sortedTerrsString = sortedTerrs.Select(o => o.GetComponent<territoryHandler>().territory.name).ToList();
+                            }
+                        }
+                        waitforAttack(sortedTerrsString, turn, ownedterritories[i]);
+                        yield return new WaitForSeconds(2);
+                    }
+                }
+                gamePhase = GamePhase.Fortify;
+            }
+        }
+    }
+
+    public void AIAttack(Territory.thePlayers player, string terr1, string terr2)
+    {
+        System.Random rnd = new System.Random();
+        AttackScript gui = attackPanel.GetComponent<AttackScript>();
+
+        List<int> PDiArray = new List<int>();
+        List<int> EDiArray = new List<int>();        
+        territoryHandler pterrhandler = territoryDict[terr1].GetComponent<territoryHandler>();
+        territoryHandler eterrhandler = territoryDict[terr2].GetComponent<territoryHandler>();
+        if (pterrhandler.territory.getPlayer() != eterrhandler.territory.getPlayer())
+        {
+            int ptroopAmount = pterrhandler.territory.troops;
+            int etroopAmount = eterrhandler.territory.troops;
+            bool battleWon = false;
+            int pDiceAmount = 0;
+            int eDiceAmount = 0;
+            while (ptroopAmount > 1 && battleWon == false)
+            {
+                if (ptroopAmount> 3)
+                {
+                    pDiceAmount = 3;
+                }
+                else if (ptroopAmount==3)
+                {
+                    pDiceAmount = 2;
+                }
+                else if (ptroopAmount==2)
+                {
+                    pDiceAmount = 1;
+                }
+                if (ptroopAmount > etroopAmount)
+                {
+                    if (etroopAmount> 2)
+                    {
+                        eDiceAmount = 3;
+                    }
+                    else if (etroopAmount==2)
+                    {
+                        eDiceAmount = 2;
+                    }
+                    else if (etroopAmount==1)
+                    {
+                        eDiceAmount = 1;
+                    }
+                }
+                else
+                {
+                    eDiceAmount = pDiceAmount;
+                }
+                for (int i = 0; i < pDiceAmount; i++)
+                {
+                    PDiArray.Add(rnd.Next(1, 7));
+                }
+                for (int i = 0; i < eDiceAmount; i++)
+                {
+                    EDiArray.Add(rnd.Next(1, 7));
+                }
+                EDiArray.Sort();
+                EDiArray.Reverse();
+                PDiArray.Sort();
+                PDiArray.Reverse();
+                int comparisions = math.min(pDiceAmount, eDiceAmount);
+                for (int i=0; i<comparisions; i++)
+                {
+                    if (etroopAmount > 0  && ptroopAmount > 1) 
+                    { 
+                        if (PDiArray[i] > EDiArray[i])
+                        {
+                            etroopAmount = etroopAmount - 1;
+                            eterrhandler.setTroopNo(etroopAmount);
+                        }
+                        else
+                        {
+                            ptroopAmount = ptroopAmount - 1;
+                            pterrhandler.setTroopNo(ptroopAmount);
+                        }
+                    }
+                    setDi();
+                }
+                
+                if (etroopAmount == 0)
+                {
+                    battleWon = true;
+                }
+
+            }
+            string attackerName = territoryDict[terr1].GetComponent<territoryHandler>().territory.name;
+            string defenderName = territoryDict[terr2].GetComponent<territoryHandler>().territory.name;
+            if (battleWon)
+            {
+                eterrhandler.territory.setPlayer(pterrhandler.territory.getPlayer());
+                removeTerrToPlayer(eterrhandler.territory.getPlayer(), eterrhandler.territory.name);
+                addTerrToPlayer(pterrhandler.territory.getPlayer(), eterrhandler.territory.name);
+                eterrhandler.oldColor = pterrhandler.oldColor;
+                eterrhandler.hoverColor = pterrhandler.hoverColor;
+                eterrhandler.setTroopNo(pterrhandler.territory.troops - 1);
+                pterrhandler.setTroopNo(1);
+                tintTerritories();
+                print(attackerName + " has defeated" + defenderName);
+            }else
+            {
+                print(attackerName + "has failed in his attack agains" + defenderName);
+            }
+        }
+        else
+        {
+            print(terr1 + "Can't attack " + terr2 + " since owned by same player");
+            
+        }
+    }
+
+    public void waitforAttack(List<string> sortedList, Territory.thePlayers turn, string terr1)
+    {
+        print("wait!");
+        territoryHandler pScript = territoryDict[terr1].GetComponent<territoryHandler>();
+        int count = 0;
+        while (count < sortedList.Count)
+        {
+            territoryHandler eScript = territoryDict[sortedList[count]].GetComponent<territoryHandler>();
+            if (eScript.territory.troops < pScript.territory.troops)
+            {         
+                AIAttack(turn, terr1, sortedList[count]);
+            }
+            count = count +1;
+
+            if (count == sortedList.Count){
+            }
+            // yield return new WaitForSeconds(5);
+        }
+    }
+
+    public void AIAssign(string terr1, int troopAmount)
+    {
+        territoryHandler terrhandler = territoryDict[terr1].GetComponent<territoryHandler>();
+        if (terrhandler.territory.getPlayer() == turn)
+        {
+            if (troopsleft - troopAmount >= 0)
+            {
+                terrhandler.setTroopNo(terrhandler.territory.troops + troopAmount);
+                troopsleft = troopsleft - troopAmount;
+                playerTroops[turn] = troopsleft;
+            }
+            else
+            {
+                print("not enough troops");
+            }
+        }
+        else{
+            print("not enough troops");
+        }
+    }
+
+    public void AIFortify(string terr1, string terr2, int troopAmount)
+    {
+        territoryHandler terrhandler = territoryDict[terr1].GetComponent<territoryHandler>();
+        territoryHandler newTerrhandler = territoryDict[terr2].GetComponent<territoryHandler>();
+        if (terr1 != terr2 && terrhandler.territory.getPlayer() == newTerrhandler.territory.getPlayer())
+        {
+            if (troopAmount < terrhandler.territory.troops)
+            {
+                terrhandler.setTroopNo(terrhandler.territory.troops - troopAmount);
+                newTerrhandler.setTroopNo(newTerrhandler.territory.troops + troopAmount);
+            }
+            else
+            {
+                print("Not enough troops to fortify");
+            }
+        }
+        else
+        {
+            print("these territories can't donate to eachother");
+        }
     }
 
     void AddTerritoryData()
@@ -274,51 +625,6 @@ public class territoryManager : MonoBehaviour
 
     public void ShowTargets(string selected)
     {
-        Dictionary<string, List<string>> attackDict = new Dictionary<string, List<string>>() 
-        {
-            { "Alaska", new List<string> {"Kamchatka", "Northwest Territory", "Alberta" } },
-            { "Northwest Territory",  new List<string> {  "Alaska", "Alberta", "Ontario", "Greenland" } },
-            { "Greenland",  new List<string> { "Northwest Territory", "Iceland", "Ontario", "Quebec" } },
-            { "Scandinavia",  new List<string> { "Iceland", "Great Britain", "Ukraine", } },
-            { "Siberia",  new List<string> { "Ural", "Yakutsk", "Irkutsk",  "China", "Mongolia" } },
-            { "Yakutsk",  new List<string> { "Siberia", "Irkutsk", "Kamchatka" } },
-            { "Kamchatka",  new List<string> { "Yakutsk", "Irkutsk", "Mongolia", "Alaska", "Japan" } },
-            { "Alberta",  new List<string> { "Alaska", "Northwest Territory", "Ontario", "Western US" } },
-            { "Ontario",  new List<string> { "Western US", "Eastern US", "Quebec", "Alberta", "Northwest Territory", "Greenland" } },
-            { "Quebec",  new List<string> { "Ontario", "Eastern US", "Greenland" } },
-            { "Iceland",  new List<string> { "Greenland", "Scandinavia", "Great Britain" } },
-            { "Ukraine",  new List<string> { "Scandinavia", "Ural", "Afghanistan", "Southern Europe", "Middle East", "Northern Europe" } },
-            { "Ural",  new List<string> { "Ukraine", "Afghanistan", "China", "Siberia" } },
-            { "Western US",  new List<string> { "Eastern US", "Alberta", "Ontario" , "Central America", } },
-            { "Eastern US",  new List<string> { "Ontario",  "Western US", "Central America", "Quebec" } },
-            { "Great Britain",  new List<string> { "Iceland", "Scandinavia", "Northern Europe", "Western Europe"  } },
-            { "Irkutsk",  new List<string> { "Siberia", "Yakutsk", "Kamchatka", "Mongolia" } },
-            { "Japan",  new List<string> { "Mongolia", "Kamchatka" } },
-            { "Western Europe",  new List<string> { "Northern Europe", "Southern Europe", "Great Britain" } },
-            { "Northern Europe",  new List<string> { "Southern Europe", "Great Britain", "Ukraine", "Western Europe" } },
-            { "Afghanistan",  new List<string> { "Ukraine", "Ural", "China", "India", "Middle East" } },
-            { "Mongolia",  new List<string> { "Japan", "Kamchatka" , "Irkutsk", "China", "Siberia" } },
-            { "Central America",  new List<string> { "Western US", "Eastern US", "Venezuela" } },
-            { "Venezuela",  new List<string> { "Central America", "Brazil", "Peru" } },
-            { "Southern Europe",  new List<string> { "Western Europe", "Northern Europe", "Ukraine", "Middle East", "Egypt" } },
-            { "Middle East",  new List<string> { "Ukraine", "Southern Europe", "Afghanistan",  "India", "Egypt", "East Africa" } },
-            { "China",  new List<string> { "India", "Siam", "Afghanistan", "Ural", "Siberia", "Mongolia"} },
-            { "Peru",  new List<string> { "Venezuela", "Brazil", "Argentina"} },
-            { "Brazil",  new List<string> { "Venezuela", "Peru", "Argentina", "North Africa" } },
-            { "North Africa",  new List<string> { "Brazil", "Congo", "East Africa", "Egypt", } },
-            { "Egypt",  new List<string> { "Southern Europe", "East Africa", "North Africa", "Middle East" } },
-            { "India",  new List<string> { "Siam", "China", "Afghanistan", "Middle East" } },
-            { "Siam",  new List<string> { "India", "China", "Indonesia" } },
-            { "Indonesia",  new List<string> { "Siam", "New Guinea", "Western Australia"} },
-            { "New Guinea",  new List<string> { "Indonesia", "Eastern Australia", } },
-            { "Argentina",  new List<string> { "Peru", "Brazil"} },
-            { "Congo",  new List<string> { "North Africa", "East Africa", "South Africa"} },
-            { "East Africa",  new List<string> { "Egypt", "North Africa", "Congo", "South Africa", "Madagascar", "Middle East" } },
-            { "Western Australia",  new List<string> { "Indonesia", "Eastern Australia" } },
-            { "Eastern Australia",  new List<string> { "New Guinea", "Western Australia" } },
-            { "South Africa",  new List<string> { "Congo", "East Africa" } },
-            { "Madagascar",  new List<string> { "East Africa" } }
-        };
         if (attacking == false) { 
             attacker = territoryDict[selected];
         }
