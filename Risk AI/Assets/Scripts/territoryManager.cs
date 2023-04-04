@@ -338,10 +338,8 @@ public class territoryManager : MonoBehaviour
 
     IEnumerator AIAttackLogic()
     {
-        if (gameState == GameState.MainState)
+        if (gameState == GameState.MainState && gamePhase == GamePhase.Attack)
         {
-            if (gamePhase == GamePhase.Attack)
-            {
                 List<string> ownedterritories = new List<string>();
                 ownedterritories = playerTerritories[turn];
                 for (int i = 0; i < ownedterritories.Count; i++)
@@ -367,8 +365,51 @@ public class territoryManager : MonoBehaviour
                     }
                 }
                 gamePhase = GamePhase.Fortify;
-            }
         }
+    }
+
+    IEnumerator AIFortifyLogic()
+    {
+        if(gameState == GameState.MainState && gamePhase == GamePhase.Fortify)
+        {
+            List<string> ownedterritories = new List<string>();
+            ownedterritories = playerTerritories[turn];
+            string weakestTerritory = 0;
+            string donater = null;
+            int donateAmount = 0;
+            for (int counter = 0; counter < ownedterritories.Count; counter++)
+            {
+                bool canDonate = true;
+                List<string> attacktargets = attackDict[ownedterritories[counter]];
+                territoryHandler pScript = territoryDict[ownedterritories[counter]].GetComponent<territoryHandler>();
+                int donatableAmount = 0;
+                foreach (var eterr in attacktargets)
+                {
+                    territoryHandler eScript = territoryDict[eterr].GetComponent<territoryHandler>();
+                    if (pScript.territory.troops < eScript.territory.troops + 1 && pScript.territory.getPlayer() != eScript.territory.getPlayer())
+                    {
+                        canDonate = false;
+                    }
+                    if (pScript.territory.getPlayer() != eScript.territory.getPlayer())
+                    {
+                        donatableAmount = pScript.territory.troops - eScript.territory.troops + 1;
+                    }
+                }
+                if (canDonate)
+                {
+                    
+                    if (donatableAmount > donateAmount) 
+                    {
+                        donater = ownedterritories[counter];
+                        donateAmount = donatableAmount;
+                    }
+                }
+
+            }
+            gamePhase = GamePhase.Attack;
+            startAttackAI = true;
+        }
+        yield return new WaitForSeconds(2);
     }
 
     public void AIAttack(Territory.thePlayers player, string terr1, string terr2)
