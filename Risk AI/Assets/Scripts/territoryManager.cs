@@ -213,12 +213,14 @@ public class territoryManager : MonoBehaviour
 
         if (startAttackAI == true) {
             startAttackAI = false;
-            StartCoroutine(AIAttackLogic());
+            gamePhase = GamePhase.Fortify;
+            fortifyTerritoriesAI = true;
+            // StartCoroutine(AIAttackLogic());
         }
         
         if (fortifyTerritoriesAI == true) {
             fortifyTerritoriesAI = false;
-            StartCoroutine(AIAttackLogic());
+            StartCoroutine(AIFortifyLogic());
         }
         
     }
@@ -365,6 +367,7 @@ public class territoryManager : MonoBehaviour
                     }
                 }
                 gamePhase = GamePhase.Fortify;
+                fortifyTerritoriesAI = true;
         }
     }
 
@@ -372,44 +375,94 @@ public class territoryManager : MonoBehaviour
     {
         if(gameState == GameState.MainState && gamePhase == GamePhase.Fortify)
         {
+            yield return new WaitForSeconds(2);
             List<string> ownedterritories = new List<string>();
             ownedterritories = playerTerritories[turn];
-            string weakestTerritory = 0;
             string donater = null;
+            string receiver = null;
             int donateAmount = 0;
+            int donatedAmount = 0;
             for (int counter = 0; counter < ownedterritories.Count; counter++)
             {
                 bool canDonate = true;
                 List<string> attacktargets = attackDict[ownedterritories[counter]];
                 territoryHandler pScript = territoryDict[ownedterritories[counter]].GetComponent<territoryHandler>();
-                int donatableAmount = 0;
+                int donatableAmount = pScript.territory.troops;
                 foreach (var eterr in attacktargets)
                 {
                     territoryHandler eScript = territoryDict[eterr].GetComponent<territoryHandler>();
-                    if (pScript.territory.troops < eScript.territory.troops + 1 && pScript.territory.getPlayer() != eScript.territory.getPlayer())
-                    {
-                        canDonate = false;
-                    }
                     if (pScript.territory.getPlayer() != eScript.territory.getPlayer())
                     {
-                        donatableAmount = pScript.territory.troops - eScript.territory.troops + 1;
+                        if (pScript.territory.troops <= eScript.territory.troops + 1)
+                        {
+                            canDonate = false;
+                        }
+                        if (pScript.territory.troops - (eScript.territory.troops + 1) < donatableAmount && pScript.territory.troops - (eScript.territory.troops + 1) > 0)
+                        {
+                            print(pScript.name + " has spare " + (pScript.territory.troops - (eScript.territory.troops + 1)));
+                            donatableAmount = pScript.territory.troops - (eScript.territory.troops + 1);
+                        }
                     }
                 }
                 if (canDonate)
                 {
-                    
-                    if (donatableAmount > donateAmount) 
+                    if (donatableAmount > donateAmount)
                     {
                         donater = ownedterritories[counter];
                         donateAmount = donatableAmount;
                     }
                 }
-
             }
-            gamePhase = GamePhase.Attack;
-            startAttackAI = true;
+            print(donater + " is donating " + donateAmount);
+            donatedAmount = 0;
+            for (int counter = 0; counter < ownedterritories.Count; counter++)
+            {
+                bool canAttack = true;
+                List<string> attacktargets = attackDict[ownedterritories[counter]];
+                territoryHandler pScript = territoryDict[ownedterritories[counter]].GetComponent<territoryHandler>();
+                int troopsneeded = 0;
+                foreach (var eterr in attacktargets)
+                {
+                    territoryHandler eScript = territoryDict[eterr].GetComponent<territoryHandler>();
+                    if (pScript.territory.getPlayer() != eScript.territory.getPlayer())
+                    {
+                        
+                        if (pScript.territory.troops < eScript.territory.troops + 1)
+                        {
+                            canAttack = false;
+                        }
+                        if (pScript.territory.troops - (eScript.territory.troops + 1) < 0)
+                        {
+                            if (pScript.territory.troops - (eScript.territory.troops + 1) < troopsneeded)
+                            {
+                                print(pScript.name + " needs " + (pScript.territory.troops - (eScript.territory.troops + 1)));
+                                troopsneeded = pScript.territory.troops - (eScript.territory.troops + 1);
+                            }
+                        }
+                    }
+
+                }
+                if (!canAttack)
+                {
+                    if (troopsneeded < donatedAmount && troopsneeded >= donateAmount * -1 )
+                    {
+                        donatedAmount = troopsneeded;
+                        receiver = pScript.name;
+                    }
+                }
+            }
+            print(receiver + " needs " + donatedAmount * 1);
+            if (donater != null && receiver != null)
+            {
+                AIFortify(donater, receiver, donatedAmount * -1);
+            }
+            else
+            {
+                print("skipped fortification");
+            }
+            gamePhase = GamePhase.Assign;
+            // assignTroopsAI = true;
         }
-        yield return new WaitForSeconds(2);
     }
 
     public void AIAttack(Territory.thePlayers player, string terr1, string terr2)
@@ -572,8 +625,12 @@ public class territoryManager : MonoBehaviour
         {
             if (troopAmount < terrhandler.territory.troops)
             {
+                int oldtroops = terrhandler.territory.troops;
+                int oldtroopsnew = newTerrhandler.territory.troops;
                 terrhandler.setTroopNo(terrhandler.territory.troops - troopAmount);
                 newTerrhandler.setTroopNo(newTerrhandler.territory.troops + troopAmount);
+                print(terrhandler.name + " had " + oldtroops + " and " + newTerrhandler.name + " had " + oldtroopsnew);
+                print(terrhandler.name + " has " + terrhandler.territory.troops + " and " + newTerrhandler.name + " has " + newTerrhandler.territory.troops);
             }
             else
             {
