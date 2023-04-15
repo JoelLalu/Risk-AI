@@ -50,11 +50,13 @@ public class territoryManager : MonoBehaviour
     public void addTerrToPlayer(Territory.thePlayers player, string territoryName)
     {
         playerTerritories[player].Add(territoryName);
+        // print("added " + territoryName + " to " + player);
     }
 
-    public void removeTerrToPlayer(Territory.thePlayers player, string territoryName)
+    public void removeTerrFromPlayer(Territory.thePlayers player, string territoryName)
     {
         playerTerritories[player].Remove(territoryName);
+        // print("removed " + territoryName + " from " + player);
     }
 
     private Dictionary<string, List<string>> continentDict = new Dictionary<string, List<string>>()
@@ -193,36 +195,35 @@ public class territoryManager : MonoBehaviour
             }
         }
         nextTurn = dictCorrection;
-        foreach (var (key, value) in nextTurn)
-        {
-                print(key + "test" + value);
-        }
     }
 
     void Update()
     {
-        if (AIGameStart == true){
-            AIGameStart = false;
-            assignTroopsAI = true;
-        }
+        if (!gameover)
+        {
+            if (AIGameStart == true){
+                AIGameStart = false;
+                assignTroopsAI = true;
+            }
 
-        if (assignTroopsAI == true) {
-            assignTroopsAI = false;
-            StartCoroutine(AIAsignLogic());
-        }
+            else if (assignTroopsAI == true) {
+                assignTroopsAI = false;
+                print("Assign Phase");
+                StartCoroutine(AIAsignLogic());
+            }
 
-        if (startAttackAI == true) {
-            startAttackAI = false;
-            gamePhase = GamePhase.Fortify;
-            fortifyTerritoriesAI = true;
-            // StartCoroutine(AIAttackLogic());
+            else if (startAttackAI == true) {
+                startAttackAI = false;
+                print("Attack Phase");
+                StartCoroutine(AIAttackLogic());
+            }
+            
+            else if (fortifyTerritoriesAI == true) {
+                fortifyTerritoriesAI = false;
+                print("Fortify Phase");
+                StartCoroutine(AIFortifyLogic());
+            }
         }
-        
-        if (fortifyTerritoriesAI == true) {
-            fortifyTerritoriesAI = false;
-            StartCoroutine(AIFortifyLogic());
-        }
-        
     }
 
     private void Awake()
@@ -267,8 +268,8 @@ public class territoryManager : MonoBehaviour
                 terrhandler.territory.setPlayer(playerDict[playerNum]);
                 addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
             }
-            playerTerritories.Remove(Territory.thePlayers.PLAYER3);
-            playerTerritories.Remove(Territory.thePlayers.PLAYER4);
+            // playerTerritories.Remove(Territory.thePlayers.PLAYER3);
+            // playerTerritories.Remove(Territory.thePlayers.PLAYER4);
             eanblePlayerTerr(Territory.thePlayers.PLAYER1);
             tintTerritories();
             turn = Territory.thePlayers.PLAYER1;
@@ -298,6 +299,10 @@ public class territoryManager : MonoBehaviour
                 addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
                 disableTerritory(terr);
             }
+            // removePlayer(Territory.thePlayers.PLAYER3);
+            // removePlayer(Territory.thePlayers.PLAYER4);
+            // playerTerritories.Remove(Territory.thePlayers.PLAYER3);
+            // playerTerritories.Remove(Territory.thePlayers.PLAYER4);
             turn = Territory.thePlayers.PLAYER1;
             playerTxt.text = "Player: " + turn.ToString();
             gameState = GameState.MainState;
@@ -314,7 +319,7 @@ public class territoryManager : MonoBehaviour
     {
         if (gameState == GameState.MainState)
         {
-            yield return new WaitForSeconds(2);
+            yield return new WaitForSeconds(1);
             if (gamePhase == GamePhase.Assign)
             {
                 List<string> ownedterritories = new List<string>();
@@ -342,32 +347,32 @@ public class territoryManager : MonoBehaviour
     {
         if (gameState == GameState.MainState && gamePhase == GamePhase.Attack)
         {
-                List<string> ownedterritories = new List<string>();
-                ownedterritories = playerTerritories[turn];
-                for (int i = 0; i < ownedterritories.Count; i++)
+            List<string> ownedterritories = new List<string>();
+            ownedterritories = playerTerritories[turn];
+            for (int i = 0; i < ownedterritories.Count; i++)
+            {
+                territoryHandler pScript = territoryDict[ownedterritories[i]].GetComponent<territoryHandler>();
+                if (pScript.territory.troops > 1)
                 {
-                    territoryHandler pScript = territoryDict[ownedterritories[i]].GetComponent<territoryHandler>();
-                    if (pScript.territory.troops > 1)
+                    List<string> attacktargets = attackDict[ownedterritories[i]];
+                    List<GameObject> desiredTargetList = new List<GameObject>();
+                    List<string> sortedTerrsString = new List<string>();
+                    foreach (var eterr in attacktargets)
                     {
-                        List<string> attacktargets = attackDict[ownedterritories[i]];
-                        List<GameObject> desiredTargetList = new List<GameObject>();
-                        List<string> sortedTerrsString = new List<string>();
-                        foreach (var eterr in attacktargets)
+                        territoryHandler eScript = territoryDict[eterr].GetComponent<territoryHandler>();
+                        if (pScript.territory.troops > eScript.territory.troops)
                         {
-                            territoryHandler eScript = territoryDict[eterr].GetComponent<territoryHandler>();
-                            if (pScript.territory.troops > eScript.territory.troops)
-                            {
-                                desiredTargetList.Add(territoryDict[eterr]);
-                                var sortedTerrs = desiredTargetList.OrderBy(o => o.GetComponent<territoryHandler>().territory.troops).ToList();
-                                sortedTerrsString = sortedTerrs.Select(o => o.GetComponent<territoryHandler>().territory.name).ToList();
-                            }
+                            desiredTargetList.Add(territoryDict[eterr]);
+                            var sortedTerrs = desiredTargetList.OrderBy(o => o.GetComponent<territoryHandler>().territory.troops).ToList();
+                            sortedTerrsString = sortedTerrs.Select(o => o.GetComponent<territoryHandler>().territory.name).ToList();
                         }
-                        waitforAttack(sortedTerrsString, turn, ownedterritories[i]);
-                        yield return new WaitForSeconds(2);
                     }
+                    waitforAttack(sortedTerrsString, turn, ownedterritories[i]);
                 }
-                gamePhase = GamePhase.Fortify;
-                fortifyTerritoriesAI = true;
+            }
+            gamePhase = GamePhase.Fortify;
+            fortifyTerritoriesAI = true;
+            yield return new WaitForSeconds(1); 
         }
     }
 
@@ -375,7 +380,7 @@ public class territoryManager : MonoBehaviour
     {
         if(gameState == GameState.MainState && gamePhase == GamePhase.Fortify)
         {
-            yield return new WaitForSeconds(2);
+            yield return new WaitForSeconds(1);
             List<string> ownedterritories = new List<string>();
             ownedterritories = playerTerritories[turn];
             string donater = null;
@@ -391,6 +396,13 @@ public class territoryManager : MonoBehaviour
                 foreach (var eterr in attacktargets)
                 {
                     territoryHandler eScript = territoryDict[eterr].GetComponent<territoryHandler>();
+                    if (pScript.territory.getPlayer() == eScript.territory.getPlayer()){
+                        if (pScript.territory.troops - 1 < donatableAmount)
+                        {
+                            // print(pScript.name + " has spare " + (pScript.territory.troops - (eScript.territory.troops + 1)));
+                            donatableAmount = pScript.territory.troops - 1;
+                        }
+                    }
                     if (pScript.territory.getPlayer() != eScript.territory.getPlayer())
                     {
                         if (pScript.territory.troops <= eScript.territory.troops + 1)
@@ -399,7 +411,7 @@ public class territoryManager : MonoBehaviour
                         }
                         if (pScript.territory.troops - (eScript.territory.troops + 1) < donatableAmount && pScript.territory.troops - (eScript.territory.troops + 1) > 0)
                         {
-                            print(pScript.name + " has spare " + (pScript.territory.troops - (eScript.territory.troops + 1)));
+                            // print(pScript.name + " has spare " + (pScript.territory.troops - (eScript.territory.troops + 1)));
                             donatableAmount = pScript.territory.troops - (eScript.territory.troops + 1);
                         }
                     }
@@ -413,7 +425,7 @@ public class territoryManager : MonoBehaviour
                     }
                 }
             }
-            print(donater + " is donating " + donateAmount);
+            // print(donater + " is donating " + donateAmount);
             donatedAmount = 0;
             for (int counter = 0; counter < ownedterritories.Count; counter++)
             {
@@ -435,7 +447,7 @@ public class territoryManager : MonoBehaviour
                         {
                             if (pScript.territory.troops - (eScript.territory.troops + 1) < troopsneeded)
                             {
-                                print(pScript.name + " needs " + (pScript.territory.troops - (eScript.territory.troops + 1)));
+                                // print(pScript.name + " needs " + (pScript.territory.troops - (eScript.territory.troops + 1)));
                                 troopsneeded = pScript.territory.troops - (eScript.territory.troops + 1);
                             }
                         }
@@ -451,17 +463,25 @@ public class territoryManager : MonoBehaviour
                     }
                 }
             }
-            print(receiver + " needs " + donatedAmount * 1);
+            print(receiver + " needs " + donatedAmount * -1);
             if (donater != null && receiver != null)
             {
-                AIFortify(donater, receiver, donatedAmount * -1);
+                AIFortify(donater, receiver, donateAmount);
             }
             else
             {
                 print("skipped fortification");
             }
+            //needs to change description text
+            descriptionTxt.text = "Assign you troops to prepare to attack";
+            turn = nextTurn[turn];
+            playerTxt.color = nextTurnColor[turn];
+            playerTxt.text = "Player: " + turn.ToString();
             gamePhase = GamePhase.Assign;
-            // assignTroopsAI = true;
+            playerTroops[turn] = newTroopAmount(turn);
+            troopsleft = playerTroops[turn];
+            tintTerritories();
+            assignTroopsAI = true;
         }
     }
 
@@ -469,9 +489,6 @@ public class territoryManager : MonoBehaviour
     {
         System.Random rnd = new System.Random();
         AttackScript gui = attackPanel.GetComponent<AttackScript>();
-
-        List<int> PDiArray = new List<int>();
-        List<int> EDiArray = new List<int>();        
         territoryHandler pterrhandler = territoryDict[terr1].GetComponent<territoryHandler>();
         territoryHandler eterrhandler = territoryDict[terr2].GetComponent<territoryHandler>();
         if (pterrhandler.territory.getPlayer() != eterrhandler.territory.getPlayer())
@@ -481,8 +498,11 @@ public class territoryManager : MonoBehaviour
             bool battleWon = false;
             int pDiceAmount = 0;
             int eDiceAmount = 0;
+            List<string> attackStats = new List<string>();
             while (ptroopAmount > 1 && battleWon == false)
             {
+                List<int> PDiArray = new List<int>();
+                List<int> EDiArray = new List<int>();    
                 if (ptroopAmount> 3)
                 {
                     pDiceAmount = 3;
@@ -497,11 +517,7 @@ public class territoryManager : MonoBehaviour
                 }
                 if (ptroopAmount > etroopAmount)
                 {
-                    if (etroopAmount> 2)
-                    {
-                        eDiceAmount = 3;
-                    }
-                    else if (etroopAmount==2)
+                    if (etroopAmount>=2)
                     {
                         eDiceAmount = 2;
                     }
@@ -522,11 +538,16 @@ public class territoryManager : MonoBehaviour
                 {
                     EDiArray.Add(rnd.Next(1, 7));
                 }
+                print(string.Format("Here's the list: ({0}).", string.Join(", ", PDiArray)));
+                print(string.Format("Here's the list: ({0}).", string.Join(", ", EDiArray)));
                 EDiArray.Sort();
                 EDiArray.Reverse();
                 PDiArray.Sort();
                 PDiArray.Reverse();
+                print(string.Format("Here's the list: ({0}).", string.Join(", ", PDiArray)));
+                print(string.Format("Here's the list: ({0}).", string.Join(", ", EDiArray)));
                 int comparisions = math.min(pDiceAmount, eDiceAmount);
+
                 for (int i=0; i<comparisions; i++)
                 {
                     if (etroopAmount > 0  && ptroopAmount > 1) 
@@ -535,14 +556,15 @@ public class territoryManager : MonoBehaviour
                         {
                             etroopAmount = etroopAmount - 1;
                             eterrhandler.setTroopNo(etroopAmount);
+                            attackStats.Add("e-1");
                         }
                         else
                         {
                             ptroopAmount = ptroopAmount - 1;
                             pterrhandler.setTroopNo(ptroopAmount);
+                            attackStats.Add("p-1");
                         }
                     }
-                    setDi();
                 }
                 
                 if (etroopAmount == 0)
@@ -551,12 +573,29 @@ public class territoryManager : MonoBehaviour
                 }
 
             }
-            string attackerName = territoryDict[terr1].GetComponent<territoryHandler>().territory.name;
-            string defenderName = territoryDict[terr2].GetComponent<territoryHandler>().territory.name;
+            print(string.Format("Here's the list: ({0}).", string.Join(", ", attackStats)));
+            string attackerName = pterrhandler.territory.name;
+            string defenderName = eterrhandler.territory.name;
             if (battleWon)
             {
-                eterrhandler.territory.setPlayer(pterrhandler.territory.getPlayer());
-                removeTerrToPlayer(eterrhandler.territory.getPlayer(), eterrhandler.territory.name);
+                removeTerrFromPlayer(eterrhandler.territory.getPlayer(), eterrhandler.territory.name);
+                //logic to remove player who when they have no territories left
+                List<Territory.thePlayers> removals = new List<Territory.thePlayers>();                    
+                foreach (var key in playerTerritories.Keys)
+                {
+                    if(playerTerritories[key].Count == 0){
+                        // print(key + "is removeable");
+                        // print(string.Format("Here's the list: ({0}).", string.Join(", ", playerTerritories[key])));
+                        removals.Add(key);
+                    }
+                }
+                foreach(var person in removals)
+                {
+                    removePlayer(person);
+                    print(person + "Removed");
+                    playerTerritories.Remove(person);
+                }
+                eterrhandler.territory.setPlayer(pterrhandler.territory.getPlayer());                
                 addTerrToPlayer(pterrhandler.territory.getPlayer(), eterrhandler.territory.name);
                 eterrhandler.oldColor = pterrhandler.oldColor;
                 eterrhandler.hoverColor = pterrhandler.hoverColor;
@@ -564,6 +603,10 @@ public class territoryManager : MonoBehaviour
                 pterrhandler.setTroopNo(1);
                 tintTerritories();
                 print(attackerName + " has defeated" + defenderName);
+                if (gameover)
+                {
+                    descriptionTxt.text = playerList[0] + " has Won";
+                }
             }else
             {
                 print(attackerName + "has failed in his attack agains" + defenderName);
@@ -571,14 +614,14 @@ public class territoryManager : MonoBehaviour
         }
         else
         {
-            print(terr1 + "Can't attack " + terr2 + " since owned by same player");
+            // print(terr1 + "Can't attack " + terr2 + " since owned by same player");
             
         }
     }
 
     public void waitforAttack(List<string> sortedList, Territory.thePlayers turn, string terr1)
     {
-        print("wait!");
+        // print("wait!");
         territoryHandler pScript = territoryDict[terr1].GetComponent<territoryHandler>();
         int count = 0;
         while (count < sortedList.Count)
@@ -589,10 +632,6 @@ public class territoryManager : MonoBehaviour
                 AIAttack(turn, terr1, sortedList[count]);
             }
             count = count +1;
-
-            if (count == sortedList.Count){
-            }
-            // yield return new WaitForSeconds(5);
         }
     }
 
@@ -609,11 +648,11 @@ public class territoryManager : MonoBehaviour
             }
             else
             {
-                print("not enough troops");
+                // print("not enough troops");
             }
         }
         else{
-            print("not enough troops");
+            // print("not enough troops");
         }
     }
 
@@ -634,12 +673,12 @@ public class territoryManager : MonoBehaviour
             }
             else
             {
-                print("Not enough troops to fortify");
+                // print("Not enough troops to fortify");
             }
         }
         else
         {
-            print("these territories can't donate to eachother");
+            // print("these territories can't donate to eachother");
         }
     }
 
@@ -982,7 +1021,7 @@ public class territoryManager : MonoBehaviour
         List<TMP_Text> pdTextArray = new List<TMP_Text>()
         { gui.PDOneTxt, gui.PDTwoTxt, gui.PDThreeTxt};
         List<TMP_Text> edTextArray = new List<TMP_Text>()
-        { gui.EDOneTxt, gui.EDTwoTxt, gui.EDThreeTxt};
+        { gui.EDOneTxt, gui.EDTwoTxt};
         
         int eDice;
         territoryHandler pScript = attacker.GetComponent<territoryHandler>();
@@ -990,11 +1029,18 @@ public class territoryManager : MonoBehaviour
 
         if (gui.EUnitValue > gui.DiceAmount)
         {
-            eDice = gui.DiceAmount;
+            if (gui.DiceAmount == 3)
+            {
+                eDice = 2;
+            }
+            else
+            {
+                eDice = gui.DiceAmount;
+            }
         }
         else if(gui.EUnitValue > 3)
         {
-            eDice = 3;
+            eDice = 2;
         }
         else
         {
@@ -1020,11 +1066,17 @@ public class territoryManager : MonoBehaviour
             }
             if (i < EDiArray.Count)
             {
-                edTextArray[i].text = EDiArray[i].ToString();
+                if (i <2)
+                {
+                    edTextArray[i].text = EDiArray[i].ToString();
+                }
             }
             else
-            {
-                edTextArray[i].text = "N/A";
+            { 
+                if (i <2)
+                {
+                    edTextArray[i].text = "N/A";
+                }
             }
         }
         EDiArray.Sort();
@@ -1058,13 +1110,13 @@ public class territoryManager : MonoBehaviour
         }
         if (gui.EUnitValue == 0)
         {
-            removeTerrToPlayer(eScript.territory.getPlayer(), eScript.territory.name);
+            removeTerrFromPlayer(eScript.territory.getPlayer(), eScript.territory.name);
             List<Territory.thePlayers> removals = new List<Territory.thePlayers>();                    
             foreach (var key in playerTerritories.Keys)
             {
                 if(playerTerritories[key].Count == 0){
-                    print(key + "test");
-                    print(string.Format("Here's the list: ({0}).", string.Join(", ", playerTerritories[key])));
+                    print(key + "has no territories");
+                    // print(string.Format("Here's the list: ({0}).", string.Join(", ", playerTerritories[key])));
                     removals.Add(eScript.territory.getPlayer());
                 }
             }
@@ -1186,7 +1238,6 @@ public class territoryManager : MonoBehaviour
                 descriptionTxt.text = "Select you territory then a territory to attack";
                 NextPhaseBtn.SetActive(true);
                 gamePhase = GamePhase.Attack;
-                print(gamePhase);
                 eanbleAttackPlayerTerr(turn);
                 tintTerritories();
             }
@@ -1327,11 +1378,14 @@ public class territoryManager : MonoBehaviour
         List<TMP_Text> pdTextArray = new List<TMP_Text>()
         { gui.PDOneTxt, gui.PDTwoTxt, gui.PDThreeTxt};
         List<TMP_Text> edTextArray = new List<TMP_Text>()
-        { gui.EDOneTxt, gui.EDTwoTxt, gui.EDThreeTxt};
+        { gui.EDOneTxt, gui.EDTwoTxt};
         for (int i = 0; i < 3; i++)
         {
             pdTextArray[i].text = "N/A";
-            edTextArray[i].text = "N/A";
+            if (i <2)
+            {
+                edTextArray[i].text = "N/A";
+            }
         }
     }
 }
