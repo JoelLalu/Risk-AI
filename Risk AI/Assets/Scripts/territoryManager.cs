@@ -22,11 +22,19 @@ public class territoryManager : MonoBehaviour
     public bool gameover = false;
 
     public bool AIGameStart = false;
+    public bool startSelect = false;
+    public bool startAssign = false;
     public bool assignTroopsAI = false;
     public bool startAttackAI = false;
     public bool fortifyTerritoriesAI = false;
 
-
+    Dictionary<Territory.thePlayers, string> PlayerTypeDict = new Dictionary<Territory.thePlayers, string>()
+    {
+        {Territory.thePlayers.PLAYER1, "player"},
+        {Territory.thePlayers.PLAYER2, "ai"},
+        {Territory.thePlayers.PLAYER3, "ai"},
+        {Territory.thePlayers.PLAYER4, "ai"}
+    };
 
     public List<GameObject> territoryList = new List<GameObject>();
     public Dictionary<string, GameObject> territoryDict = new Dictionary<string, GameObject>();
@@ -176,10 +184,12 @@ public class territoryManager : MonoBehaviour
         else if ((playerList.Count ==2))
         {
             playerList.Remove(player);
+            PlayerTypeDict.Remove(player);
             print(playerList[0] + " you won");
             gameover = true;           
         }
         else{
+            PlayerTypeDict.Remove(player);
             playerList.Remove(player);
         }
         var dictCorrection = new Dictionary<Territory.thePlayers, Territory.thePlayers>();
@@ -201,24 +211,31 @@ public class territoryManager : MonoBehaviour
     {
         if (!gameover)
         {
-            if (AIGameStart == true){
+            if (AIGameStart){
                 AIGameStart = false;
-                assignTroopsAI = true;
+                startSelect = true;
             }
-
-            else if (assignTroopsAI == true) {
+            else if (startSelect)
+            {
+                startSelect = false;
+                StartCoroutine(AIStartSelect());
+            }
+            else if (startAssign)
+            {
+                startAssign = false;
+                StartCoroutine(AIStartAssign());
+            }
+            else if (assignTroopsAI) {
                 assignTroopsAI = false;
                 print("Assign Phase");
                 StartCoroutine(AIAsignLogic());
             }
-
-            else if (startAttackAI == true) {
+            else if (startAttackAI) {
                 startAttackAI = false;
                 print("Attack Phase");
                 StartCoroutine(AIAttackLogic());
-            }
-            
-            else if (fortifyTerritoriesAI == true) {
+            }      
+            else if (fortifyTerritoriesAI) {
                 fortifyTerritoriesAI = false;
                 print("Fortify Phase");
                 StartCoroutine(AIFortifyLogic());
@@ -233,7 +250,7 @@ public class territoryManager : MonoBehaviour
 
     void Start()
     {
-    Scene currentScene = SceneManager.GetActiveScene ();
+        Scene currentScene = SceneManager.GetActiveScene();
         playerTxt.text = "Player: " + turn.ToString();
         attackPanel.SetActive(false);
         AddTerritoryData();
@@ -250,71 +267,282 @@ public class territoryManager : MonoBehaviour
                 transferBtn.SetActive(false);
             }
             tintTerritories();
-            gameState = GameState.MainState;
-            gamePhase = GamePhase.Assign;
-            foreach (var terr in territoryList)
-            {
-                territoryHandler terrhandler = terr.GetComponent<territoryHandler>();
-                int playerNum = UnityEngine.Random.Range(1,5);
-                int troopNum = UnityEngine.Random.Range(1,7);
-                terrhandler.setTroopNo(troopNum);
-                Dictionary<int, Territory.thePlayers> playerDict  = new Dictionary<int, Territory.thePlayers>()
-                {
-                    {1, Territory.thePlayers.PLAYER1},
-                    {2, Territory.thePlayers.PLAYER2},
-                    {3, Territory.thePlayers.PLAYER3},
-                    {4, Territory.thePlayers.PLAYER4}
-                };
-                terrhandler.territory.setPlayer(playerDict[playerNum]);
-                addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
-            }
+            // gameState = GameState.MainState;
+            // gamePhase = GamePhase.Assign;
+            // foreach (var terr in territoryList)
+            // {
+            //     territoryHandler terrhandler = terr.GetComponent<territoryHandler>();
+            //     int playerNum = UnityEngine.Random.Range(1,5);
+            //     int troopNum = UnityEngine.Random.Range(1,7);
+            //     terrhandler.setTroopNo(troopNum);
+            //     Dictionary<int, Territory.thePlayers> playerDict  = new Dictionary<int, Territory.thePlayers>()
+            //     {
+            //         {1, Territory.thePlayers.PLAYER1},
+            //         {2, Territory.thePlayers.PLAYER2},
+            //         {3, Territory.thePlayers.PLAYER3},
+            //         {4, Territory.thePlayers.PLAYER4}
+            //     };
+            //     terrhandler.territory.setPlayer(playerDict[playerNum]);
+            //     addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
+            // }
             // playerTerritories.Remove(Territory.thePlayers.PLAYER3);
             // playerTerritories.Remove(Territory.thePlayers.PLAYER4);
-            eanblePlayerTerr(Territory.thePlayers.PLAYER1);
-            tintTerritories();
+            // eanblePlayerTerr(Territory.thePlayers.PLAYER1);
+            // tintTerritories();
             turn = Territory.thePlayers.PLAYER1;
             playerTxt.text = "Player: " + turn.ToString();
-            gameState = GameState.MainState;
-            gamePhase = GamePhase.Assign;
-            playerTroops[turn] = newTroopAmount(turn);
-            troopsleft = playerTroops[turn];
+            // gameState = GameState.MainState;
+            // gamePhase = GamePhase.Assign;
+            // playerTroops[turn] = newTroopAmount(turn);
+            // troopsleft = playerTroops[turn];
             mapState = saveMapState();  
         }
         else if (currentScene.name == "GameAI")
         {
-            foreach (var terr in territoryList)
+            for (int i = 0; i < territoryList.Count; i++)
             {
-                territoryHandler terrhandler = terr.GetComponent<territoryHandler>();
-                int playerNum = UnityEngine.Random.Range(1,5);
-                int troopNum = UnityEngine.Random.Range(1,7);
-                terrhandler.setTroopNo(troopNum);
-                Dictionary<int, Territory.thePlayers> playerDict  = new Dictionary<int, Territory.thePlayers>()
-                {
-                    {1, Territory.thePlayers.PLAYER1},
-                    {2, Territory.thePlayers.PLAYER2},
-                    {3, Territory.thePlayers.PLAYER3},
-                    {4, Territory.thePlayers.PLAYER4}
-                };
-                terrhandler.territory.setPlayer(playerDict[playerNum]);
-                addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
-                disableTerritory(terr);
+                territoryHandler terrHandler = territoryList[i].GetComponent<territoryHandler>();
+                terrHandler.territory.setPlayer(Territory.thePlayers.UNCLAIMED);
+                terrHandler.setTroopNo(0);
+                cancelBtn.SetActive(false);
+                transferBtn.SetActive(false);
             }
+            // foreach (var terr in territoryList)
+            // {
+            //     territoryHandler terrhandler = terr.GetComponent<territoryHandler>();
+            //     int playerNum = UnityEngine.Random.Range(1,5);
+            //     int troopNum = UnityEngine.Random.Range(1,7);
+            //     terrhandler.setTroopNo(troopNum);
+            //     Dictionary<int, Territory.thePlayers> playerDict  = new Dictionary<int, Territory.thePlayers>()
+            //     {
+            //         {1, Territory.thePlayers.PLAYER1},
+            //         {2, Territory.thePlayers.PLAYER2},
+            //         {3, Territory.thePlayers.PLAYER3},
+            //         {4, Territory.thePlayers.PLAYER4}
+            //     };
+            //     terrhandler.territory.setPlayer(playerDict[playerNum]);
+            //     addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
+            //     disableTerritory(terr);
+            // }
             // removePlayer(Territory.thePlayers.PLAYER3);
             // removePlayer(Territory.thePlayers.PLAYER4);
             // playerTerritories.Remove(Territory.thePlayers.PLAYER3);
             // playerTerritories.Remove(Territory.thePlayers.PLAYER4);
+            foreach(var terr in territoryList)
+            {
+                disableTerritory(terr);
+            }
             turn = Territory.thePlayers.PLAYER1;
             playerTxt.text = "Player: " + turn.ToString();
-            gameState = GameState.MainState;
+            gameState = GameState.StartSelect;
             gamePhase = GamePhase.Assign;
-            playerTroops[turn] = newTroopAmount(turn);
             troopsleft = playerTroops[turn];
             tintTerritories();
             AIGameStart = true;
         }
+        else if (currentScene.name == "PlayerVsAI")
+        {
+            //code to generate game states at start of run
+            for (int i = 0; i < territoryList.Count; i++)
+            {
+                territoryHandler terrHandler = territoryList[i].GetComponent<territoryHandler>();
+                terrHandler.territory.setPlayer(Territory.thePlayers.UNCLAIMED);
+                terrHandler.setTroopNo(0);
+                cancelBtn.SetActive(false);
+                transferBtn.SetActive(false);
+                enableTerritory(territoryList[i]);
+            }
+            turn = Territory.thePlayers.PLAYER1;
+            playerTxt.text = "Player: " + turn.ToString();
+            tintTerritories();
+            //autoselect terrs
+            // foreach (var terr in territoryList)
+            // {
+            //     territoryHandler terrhandler = terr.GetComponent<territoryHandler>();
+            //     int playerNum = UnityEngine.Random.Range(1,5);
+            //     int troopNum = UnityEngine.Random.Range(1,7);
+            //     terrhandler.setTroopNo(troopNum);
+            //     Dictionary<int, Territory.thePlayers> playerDict  = new Dictionary<int, Territory.thePlayers>()
+            //     {
+            //         {1, Territory.thePlayers.PLAYER1},
+            //         {2, Territory.thePlayers.PLAYER2},
+            //         {3, Territory.thePlayers.PLAYER3},
+            //         {4, Territory.thePlayers.PLAYER4}
+            //     };
+            //     terrhandler.territory.setPlayer(playerDict[playerNum]);
+            //     addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
+            // }
+            // gameState = GameState.MainState;
+            // gamePhase = GamePhase.Assign;
+            // playerTroops[turn] = newTroopAmount(turn);
+            // troopsleft = playerTroops[turn];
+            if(PlayerTypeDict[turn] == "ai")
+            {
+                AIGameStart = true;
+            }
+            mapState = saveMapState();  
+        }
     }
 
     
+    IEnumerator AIStartSelect()
+    {
+        bool aiNext = true;
+        yield return new WaitForSeconds(1);
+        Scene currentScene = SceneManager.GetActiveScene();
+        print(gameState);
+        if (gameState == GameState.StartSelect)
+        {
+            foreach (var terr in territoryList)
+            {
+                print("test");
+                territoryHandler terrScript = terr.GetComponent<territoryHandler>();
+                if (terrScript.territory.getPlayer() == Territory.thePlayers.UNCLAIMED)
+                {
+                    terrScript.territory.setPlayer(turn);
+                    terrScript.setTroopNo(terrScript.territory.troops + 1);
+                    tintTerritory(terr);
+                    addTerrToPlayer(turn, terrScript.GetComponent<territoryHandler>().territory.name);
+                    playerTroops[turn] -= 1;
+                    turn = nextTurn[turn];
+                    playerTxt.color = nextTurnColor[turn];
+                    playerTxt.text = "Player: " + turn.ToString();
+                    if (currentScene.name == "PlayerVsAI")
+                    {
+                        if(PlayerTypeDict[turn] == "player" )
+                        {
+                            aiNext = false;
+                            showAvailable();    
+                        }                 
+                    }
+                    print("break");
+                    break;
+                }
+            }
+            if (getTerrtoriesOwnedNo(Territory.thePlayers.UNCLAIMED) == 0)
+            {
+                gameState = GameState.StartAssign;
+                turn = Territory.thePlayers.PLAYER1;
+                playerTxt.text = "Player: " + turn.ToString();
+                troopsleft = playerTroops[turn];
+                if (currentScene.name == "PlayerVsAI")
+                {
+                    if(PlayerTypeDict[turn] == "player" )
+                    {
+                            showAvailable();
+                            eanblePlayerTerr(turn);
+                            //add logic to switch to player select
+                    }
+                    else{
+                        startAssign = true;
+                    } 
+                }
+                else
+                {
+                    startAssign = true;
+                } 
+            }else
+            {
+                if (aiNext)
+                {
+                    startSelect = true;
+                }
+            }
+        }
+    }
+
+    IEnumerator AIStartAssign()
+    {
+        yield return new WaitForSeconds(1);
+        if (gameState == GameState.StartAssign)
+        {
+            Scene currentScene = SceneManager.GetActiveScene();
+            int remainder = troopsleft % playerTerritories[turn].Count;
+            int troopSplit = (troopsleft - remainder) / playerTerritories[turn].Count;
+            foreach (var terr in playerTerritories[turn])
+            {
+                territoryHandler terrScript= territoryDict[terr].GetComponent<territoryHandler>();
+                terrScript.setTroopNo(terrScript.territory.troops + troopSplit);
+                troopsleft = troopsleft - troopSplit;
+                if (terrScript.name == territoryDict[playerTerritories[turn][0]].GetComponent<territoryHandler>().name)
+                {
+                    terrScript.setTroopNo(terrScript.territory.troops + remainder);
+                    troopsleft = troopsleft - remainder;
+                }
+            }
+            playerTroops[turn]  = troopsleft;
+            turn = nextTurn[turn];
+            troopsleft = playerTroops[turn];
+            playerTxt.color = nextTurnColor[turn];
+            playerTxt.text = "Player: " + turn.ToString();
+            eanblePlayerTerr(turn);
+            bool noTroopsLeft = true;
+            foreach (var (key, value) in playerTroops)
+            {
+                if (value != 0)
+                {
+                    noTroopsLeft = false;
+                }
+            }
+            foreach (var (key, value) in playerTroops)
+            {
+                print(key);
+                print(value);   
+            }
+            if (noTroopsLeft)
+            {
+                turn = Territory.thePlayers.PLAYER1;
+                playerTxt.text = "Player: " + turn.ToString();
+                descriptionTxt.text = "Assign you troops to prepare to attack";
+                gameState = GameState.MainState;
+                gamePhase = GamePhase.Assign;
+                playerTroops[turn] = newTroopAmount(turn);
+                troopsleft = playerTroops[turn];
+                mapState = saveMapState();
+                if(currentScene.name == "PlayerVsAI")
+                {
+                    if(PlayerTypeDict[turn] == "player")
+                    {
+                        eanblePlayerTerr(turn);
+                    }
+                    else
+                    {
+                        foreach(var terr in territoryList)
+                        {
+                            disableTerritory(terr);
+                        }
+                        assignTroopsAI = true;
+                    }          
+                }
+                else
+                {
+                    foreach(var terr in territoryList)
+                    {
+                        disableTerritory(terr);
+                    }
+                    assignTroopsAI = true;
+                }
+            }
+            else
+            {            
+                if(currentScene.name == "PlayerVsAI")
+                {
+                    if(PlayerTypeDict[turn] == "player")
+                    {
+                        eanblePlayerTerr(turn);
+                    }
+                    else{
+                        startAssign = true;
+                    }
+                }
+                else
+                {
+                    startAssign = true;
+                }
+            }
+        }
+    }
+
     IEnumerator AIAsignLogic()
     {
         if (gameState == GameState.MainState)
@@ -473,6 +701,7 @@ public class territoryManager : MonoBehaviour
                 print("skipped fortification");
             }
             //needs to change description text
+            Scene currentScene = SceneManager.GetActiveScene();
             descriptionTxt.text = "Assign you troops to prepare to attack";
             turn = nextTurn[turn];
             playerTxt.color = nextTurnColor[turn];
@@ -481,7 +710,22 @@ public class territoryManager : MonoBehaviour
             playerTroops[turn] = newTroopAmount(turn);
             troopsleft = playerTroops[turn];
             tintTerritories();
-            assignTroopsAI = true;
+            if (currentScene.name == "PlayerVsAI")
+            {
+                if(PlayerTypeDict[turn] == "player")
+                {
+                    eanblePlayerTerr(turn);
+                    mapState = saveMapState();
+                }
+                else
+                {
+                    assignTroopsAI = true;
+                }
+            }
+            else
+            {
+                assignTroopsAI = true;
+            }
         }
     }
 
@@ -892,11 +1136,10 @@ public class territoryManager : MonoBehaviour
         }
         else if (gameState == GameState.StartAssign)
         {
-            territoryHandler terrHandler = transferTarget.GetComponent<territoryHandler>();
-            terrHandler.setTroopNo(terrHandler.territory.troops - 1);
             foreach (var terr in territoryList)
             {
-                if (terr.GetComponent<territoryHandler>().territory.getPlayer() == turn)
+                territoryHandler terrhandler = terr.GetComponent<territoryHandler>();
+                if (terrhandler.territory.getPlayer() == turn)
                 {
                     enableTerritory(terr);
                     terr.GetComponent<territoryHandler>().setTroopNo(1);
@@ -956,7 +1199,7 @@ public class territoryManager : MonoBehaviour
     {
         foreach (var terr in territoryList)
         {
-            if (terr.GetComponent<territoryHandler>().territory.getPlayer() == turn)
+            if (terr.GetComponent<territoryHandler>().territory.getPlayer() == player)
             {
                 enableTerritory(terr);
             }
@@ -1175,6 +1418,7 @@ public class territoryManager : MonoBehaviour
     //TODO: Alter the instruction text with changes
     public void FinishTransfer()
     {
+        Scene currentScene = SceneManager.GetActiveScene();
         if (gameState == GameState.StartSelect)
         {
             addTerrToPlayer(turn, transferTarget.GetComponent<territoryHandler>().territory.name);
@@ -1189,13 +1433,33 @@ public class territoryManager : MonoBehaviour
             cancelBtn.SetActive(false);
             transferBtn.SetActive(false);
             showAvailable();
+            foreach (var (key, value) in playerTerritories)
+            {
+                print(key);
+                print(string.Format("Here's the list: ({0}).", string.Join(", ", value)));
+            }
             if (getTerrtoriesOwnedNo(Territory.thePlayers.UNCLAIMED) == 0)
             {
                 gameState = GameState.StartAssign;
                 turn = Territory.thePlayers.PLAYER1;
                 playerTxt.text = "Player: " + turn.ToString();
                 troopsleft = playerTroops[turn];
+
                 eanblePlayerTerr(turn);
+            }
+            else
+            {
+                if(currentScene.name == "PlayerVsAI")
+                {
+                    if(PlayerTypeDict[turn] == "ai")
+                    {
+                        foreach (var terr in territoryList)
+                        {
+                            disableTerritory(terr);
+                        }
+                        startSelect = true;
+                    }
+                }
             }
         }
         else if (gameState == GameState.StartAssign)
@@ -1218,7 +1482,9 @@ public class territoryManager : MonoBehaviour
             }
             if (noTroopsLeft)
             {
+                print("notroops");
                 turn = Territory.thePlayers.PLAYER1;
+                eanblePlayerTerr(turn);
                 playerTxt.text = "Player: " + turn.ToString();
                 descriptionTxt.text = "Assign you troops to prepare to attack";
                 gameState = GameState.MainState;
@@ -1226,6 +1492,28 @@ public class territoryManager : MonoBehaviour
                 playerTroops[turn] = newTroopAmount(turn);
                 troopsleft = playerTroops[turn];
                 mapState = saveMapState();
+                if(currentScene.name == "PlayerVsAI")
+                {
+                    if(PlayerTypeDict[turn] == "ai")
+                    {
+                        eanblePlayerTerr(Territory.thePlayers.UNCLAIMED);
+                        assignTroopsAI = true;
+                    }
+                }
+            }else
+            {
+                print("aiswitch");
+                if(currentScene.name == "PlayerVsAI")
+                {
+                    if(PlayerTypeDict[turn] == "ai")
+                    {
+                        foreach (var terr in territoryList)
+                        {
+                            disableTerritory(terr);
+                        }
+                        startAssign = true;
+                    }
+                }
             }
         }
         else if(gameState == GameState.MainState)
@@ -1258,6 +1546,7 @@ public class territoryManager : MonoBehaviour
 
     public void nextPhase()
     {
+        Scene currentScene = SceneManager.GetActiveScene();
         if (gamePhase == GamePhase.Attack)
         {
             descriptionTxt.text = "Select territory to Fortify";
@@ -1282,7 +1571,6 @@ public class territoryManager : MonoBehaviour
             turn = nextTurn[turn];
             playerTxt.color = nextTurnColor[turn];
             playerTxt.text = "Player: " + turn.ToString();
-            eanblePlayerTerr(turn);
             terrSelected = false;
             transferReady = false;
             transferBtn.SetActive(false);
@@ -1293,6 +1581,21 @@ public class territoryManager : MonoBehaviour
             troopsleft = playerTroops[turn];
             mapState = saveMapState();
             tintTerritories();
+            if(currentScene.name == "PlayerVsAI")
+            {
+                if(PlayerTypeDict[turn] == "ai")
+                {
+                    foreach(var terr in territoryList)
+                    {
+                        disableTerritory(terr);
+                    }
+                    assignTroopsAI = true;
+                }
+            }
+            else
+            {
+                eanblePlayerTerr(turn);
+            }
         }
     }
 
