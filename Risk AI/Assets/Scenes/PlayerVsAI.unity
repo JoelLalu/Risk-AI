@@ -5141,7 +5141,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.050394878, y: 0.049000002}
   m_AnchorMax: {x: 0.125, y: 0.13722587}
-  m_AnchoredPosition: {x: -87.015015, y: 127.99987}
+  m_AnchoredPosition: {x: -87.01503, y: 127.99987}
   m_SizeDelta: {x: -0.3239994, y: -2.3990002}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &517593110
@@ -5645,6 +5645,12 @@ MonoBehaviour:
   descriptionTxt: {fileID: 1560740458}
   terrSelected: 0
   gameover: 0
+  AIGameStart: 0
+  startSelect: 0
+  startAssign: 0
+  assignTroopsAI: 0
+  startAttackAI: 0
+  fortifyTerritoriesAI: 0
   territoryList: []
   attacking: 0
   transferReady: 0
@@ -5829,7 +5835,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.050394878, y: 0.049000002}
   m_AnchorMax: {x: 0.125, y: 0.13722587}
-  m_AnchoredPosition: {x: -87.01526, y: 0}
+  m_AnchoredPosition: {x: -87.015274, y: 0}
   m_SizeDelta: {x: -0.3239994, y: -2.3990002}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &634461156
@@ -6368,7 +6374,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.050394878, y: 0.049000002}
   m_AnchorMax: {x: 0.125, y: 0.13722587}
-  m_AnchoredPosition: {x: -86.99609, y: 0}
+  m_AnchoredPosition: {x: -86.99611, y: 0}
   m_SizeDelta: {x: -0.3239994, y: -2.3990002}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &659269036
@@ -14702,8 +14708,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281874488
-  m_fontColor: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:

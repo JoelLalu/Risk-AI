@@ -69,7 +69,7 @@ public class territoryHandler : MonoBehaviour
         {
             this.setTroopNo(territory.troops + 1);
             tmInstance.troopsleft -= 1;
-
+            tmInstance.descriptionTxt.text = "Assign your " + tmInstance.troopsleft + " troops to territories";
             if (tmInstance.troopsleft == 0)
             {
                 foreach (var terr in tmInstance.territoryList)
@@ -86,7 +86,7 @@ public class territoryHandler : MonoBehaviour
             {
                 this.setTroopNo(territory.troops + 1);
                 tmInstance.troopsleft -= 1;
-
+                tmInstance.descriptionTxt.text = "Assign your " + tmInstance.troopsleft + " troops to territories";
                 if (tmInstance.troopsleft == 0)
                 {
                     foreach (var terr in tmInstance.territoryList)
@@ -153,6 +153,7 @@ public class territoryHandler : MonoBehaviour
                 {
                     if (tmInstance.terrSelected)
                     {
+                        tmInstance.descriptionTxt.text = "Select territory to move troops between them";
                         tmInstance.transferReady = true;
                         tmInstance.defender = tmInstance.territoryDict[name];
                         tmInstance.transferTroops(tmInstance.attacker.GetComponent<territoryHandler>().territory.name, name);
@@ -161,6 +162,7 @@ public class territoryHandler : MonoBehaviour
                     }
                     else
                     {
+                        territoryManager.instance.descriptionTxt.text = "Select territory you want to transfer to";
                         foreach (var terr in tmInstance.territoryList)
                         {
                             tmInstance.disableTerritory(terr);
@@ -208,6 +210,7 @@ public class territoryHandler : MonoBehaviour
         }else
         {
             territoryManager.instance.ShowTargets(name);
+            territoryManager.instance.descriptionTxt.text = "Select the territory you want to attack";
         }
 
     }

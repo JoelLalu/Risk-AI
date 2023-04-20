@@ -53,6 +53,7 @@ public class territoryManager : MonoBehaviour
         {Territory.thePlayers.PLAYER2, new List<string>()},
         {Territory.thePlayers.PLAYER3, new List<string>()},
         {Territory.thePlayers.PLAYER4, new List<string>()},
+        {Territory.thePlayers.UNCLAIMED, new List<string>()}
     };
 
     public void addTerrToPlayer(Territory.thePlayers player, string territoryName)
@@ -167,7 +168,7 @@ public class territoryManager : MonoBehaviour
         { Territory.thePlayers.PLAYER3, Territory.thePlayers.PLAYER4 },
         { Territory.thePlayers.PLAYER4, Territory.thePlayers.PLAYER1 }
     };
-    public Dictionary<Territory.thePlayers, Color32> nextTurnColor = new Dictionary<Territory.thePlayers, Color32>()
+    public Dictionary<Territory.thePlayers, Color32> playerTxtColor = new Dictionary<Territory.thePlayers, Color32>()
     {
         { Territory.thePlayers.PLAYER1, new Color32(127, 255, 212, 225) },
         { Territory.thePlayers.PLAYER2, new Color32(65, 105, 225, 225) },
@@ -218,25 +219,30 @@ public class territoryManager : MonoBehaviour
             else if (startSelect)
             {
                 startSelect = false;
+                descriptionTxt.text = "AI is Selecting Territory";
                 StartCoroutine(AIStartSelect());
             }
             else if (startAssign)
             {
                 startAssign = false;
                 StartCoroutine(AIStartAssign());
+                descriptionTxt.text = "AI is assigning troops";
             }
             else if (assignTroopsAI) {
                 assignTroopsAI = false;
                 print("Assign Phase");
+                descriptionTxt.text = "AI is assigning troops";
                 StartCoroutine(AIAsignLogic());
             }
             else if (startAttackAI) {
                 startAttackAI = false;
+                descriptionTxt.text = "AI started its attack";
                 print("Attack Phase");
                 StartCoroutine(AIAttackLogic());
             }      
             else if (fortifyTerritoriesAI) {
                 fortifyTerritoriesAI = false;
+                descriptionTxt.text = "AI is fortifying territory its attack";
                 print("Fortify Phase");
                 StartCoroutine(AIFortifyLogic());
             }
@@ -251,7 +257,9 @@ public class territoryManager : MonoBehaviour
     void Start()
     {
         Scene currentScene = SceneManager.GetActiveScene();
+        playerTxt.color = playerTxtColor[turn];
         playerTxt.text = "Player: " + turn.ToString();
+        descriptionTxt.text = "Select The Territory you want";
         attackPanel.SetActive(false);
         AddTerritoryData();
         //start code
@@ -261,6 +269,7 @@ public class territoryManager : MonoBehaviour
             for (int i = 0; i < territoryList.Count; i++)
             {
                 territoryHandler terrHandler = territoryList[i].GetComponent<territoryHandler>();
+                addTerrToPlayer(Territory.thePlayers.UNCLAIMED, terrHandler.name);
                 terrHandler.territory.setPlayer(Territory.thePlayers.UNCLAIMED);
                 terrHandler.setTroopNo(0);
                 cancelBtn.SetActive(false);
@@ -285,17 +294,20 @@ public class territoryManager : MonoBehaviour
             //     terrhandler.territory.setPlayer(playerDict[playerNum]);
             //     addTerrToPlayer(playerDict[playerNum], terrhandler.territory.name);
             // }
-            // playerTerritories.Remove(Territory.thePlayers.PLAYER3);
-            // playerTerritories.Remove(Territory.thePlayers.PLAYER4);
+
             // eanblePlayerTerr(Territory.thePlayers.PLAYER1);
             // tintTerritories();
+
             turn = Territory.thePlayers.PLAYER1;
+            playerTxt.color = playerTxtColor[turn];
             playerTxt.text = "Player: " + turn.ToString();
+
             // gameState = GameState.MainState;
             // gamePhase = GamePhase.Assign;
             // playerTroops[turn] = newTroopAmount(turn);
             // troopsleft = playerTroops[turn];
-            mapState = saveMapState();  
+
+            mapState = saveMapState();
         }
         else if (currentScene.name == "GameAI")
         {
@@ -304,8 +316,7 @@ public class territoryManager : MonoBehaviour
                 territoryHandler terrHandler = territoryList[i].GetComponent<territoryHandler>();
                 terrHandler.territory.setPlayer(Territory.thePlayers.UNCLAIMED);
                 terrHandler.setTroopNo(0);
-                cancelBtn.SetActive(false);
-                transferBtn.SetActive(false);
+                addTerrToPlayer(Territory.thePlayers.UNCLAIMED, terrHandler.name);
             }
             // foreach (var terr in territoryList)
             // {
@@ -333,6 +344,7 @@ public class territoryManager : MonoBehaviour
                 disableTerritory(terr);
             }
             turn = Territory.thePlayers.PLAYER1;
+            playerTxt.color = playerTxtColor[turn];
             playerTxt.text = "Player: " + turn.ToString();
             gameState = GameState.StartSelect;
             gamePhase = GamePhase.Assign;
@@ -351,8 +363,10 @@ public class territoryManager : MonoBehaviour
                 cancelBtn.SetActive(false);
                 transferBtn.SetActive(false);
                 enableTerritory(territoryList[i]);
+                addTerrToPlayer(Territory.thePlayers.UNCLAIMED, terrHandler.name);
             }
             turn = Territory.thePlayers.PLAYER1;
+            playerTxt.color = playerTxtColor[turn];
             playerTxt.text = "Player: " + turn.ToString();
             tintTerritories();
             //autoselect terrs
@@ -388,39 +402,37 @@ public class territoryManager : MonoBehaviour
     IEnumerator AIStartSelect()
     {
         bool aiNext = true;
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(0.5f);
         Scene currentScene = SceneManager.GetActiveScene();
-        print(gameState);
         if (gameState == GameState.StartSelect)
         {
-            foreach (var terr in territoryList)
+            int randomterrNo = UnityEngine.Random.Range(0, playerTerritories[Territory.thePlayers.UNCLAIMED].Count);
+            GameObject terr = territoryDict[playerTerritories[Territory.thePlayers.UNCLAIMED][randomterrNo]];
+            territoryHandler terrScript = terr.GetComponent<territoryHandler>();
+            if (terrScript.territory.getPlayer() == Territory.thePlayers.UNCLAIMED)
             {
-                print("test");
-                territoryHandler terrScript = terr.GetComponent<territoryHandler>();
-                if (terrScript.territory.getPlayer() == Territory.thePlayers.UNCLAIMED)
+                removeTerrFromPlayer(Territory.thePlayers.UNCLAIMED, terrScript.name);
+                terrScript.territory.setPlayer(turn);
+                terrScript.setTroopNo(terrScript.territory.troops + 1);
+                tintTerritory(terr);
+                addTerrToPlayer(turn, terrScript.GetComponent<territoryHandler>().territory.name);
+                playerTroops[turn] -= 1;
+                turn = nextTurn[turn];
+                playerTxt.color = playerTxtColor[turn];
+                playerTxt.text = "Player: " + turn.ToString();
+                if (currentScene.name == "PlayerVsAI")
                 {
-                    terrScript.territory.setPlayer(turn);
-                    terrScript.setTroopNo(terrScript.territory.troops + 1);
-                    tintTerritory(terr);
-                    addTerrToPlayer(turn, terrScript.GetComponent<territoryHandler>().territory.name);
-                    playerTroops[turn] -= 1;
-                    turn = nextTurn[turn];
-                    playerTxt.color = nextTurnColor[turn];
-                    playerTxt.text = "Player: " + turn.ToString();
-                    if (currentScene.name == "PlayerVsAI")
+                    if(PlayerTypeDict[turn] == "player" )
                     {
-                        if(PlayerTypeDict[turn] == "player" )
-                        {
-                            aiNext = false;
-                            showAvailable();    
-                        }                 
-                    }
-                    print("break");
-                    break;
+                        descriptionTxt.text = "Select The Territory you want";
+                        aiNext = false;
+                        showAvailable();    
+                    }                 
                 }
             }
             if (getTerrtoriesOwnedNo(Territory.thePlayers.UNCLAIMED) == 0)
             {
+                playerTerritories.Remove(Territory.thePlayers.UNCLAIMED);
                 gameState = GameState.StartAssign;
                 turn = Territory.thePlayers.PLAYER1;
                 playerTxt.text = "Player: " + turn.ToString();
@@ -431,7 +443,7 @@ public class territoryManager : MonoBehaviour
                     {
                             showAvailable();
                             eanblePlayerTerr(turn);
-                            //add logic to switch to player select
+                            descriptionTxt.text = "Assign your " + troopsleft + " troops to territories";
                     }
                     else{
                         startAssign = true;
@@ -453,7 +465,7 @@ public class territoryManager : MonoBehaviour
 
     IEnumerator AIStartAssign()
     {
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(0.5f);
         if (gameState == GameState.StartAssign)
         {
             Scene currentScene = SceneManager.GetActiveScene();
@@ -473,7 +485,7 @@ public class territoryManager : MonoBehaviour
             playerTroops[turn]  = troopsleft;
             turn = nextTurn[turn];
             troopsleft = playerTroops[turn];
-            playerTxt.color = nextTurnColor[turn];
+            playerTxt.color = playerTxtColor[turn];
             playerTxt.text = "Player: " + turn.ToString();
             eanblePlayerTerr(turn);
             bool noTroopsLeft = true;
@@ -484,16 +496,11 @@ public class territoryManager : MonoBehaviour
                     noTroopsLeft = false;
                 }
             }
-            foreach (var (key, value) in playerTroops)
-            {
-                print(key);
-                print(value);   
-            }
             if (noTroopsLeft)
             {
                 turn = Territory.thePlayers.PLAYER1;
                 playerTxt.text = "Player: " + turn.ToString();
-                descriptionTxt.text = "Assign you troops to prepare to attack";
+                playerTxt.color = playerTxtColor[turn];
                 gameState = GameState.MainState;
                 gamePhase = GamePhase.Assign;
                 playerTroops[turn] = newTroopAmount(turn);
@@ -504,6 +511,7 @@ public class territoryManager : MonoBehaviour
                     if(PlayerTypeDict[turn] == "player")
                     {
                         eanblePlayerTerr(turn);
+                        descriptionTxt.text = "Assign your " + troopsleft + " troops to territories";
                     }
                     else
                     {
@@ -530,6 +538,7 @@ public class territoryManager : MonoBehaviour
                     if(PlayerTypeDict[turn] == "player")
                     {
                         eanblePlayerTerr(turn);
+                        descriptionTxt.text = "Assign your " + troopsleft + " troops to territories";
                     }
                     else{
                         startAssign = true;
@@ -547,7 +556,7 @@ public class territoryManager : MonoBehaviour
     {
         if (gameState == GameState.MainState)
         {
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(0.5f);
             if (gamePhase == GamePhase.Assign)
             {
                 List<string> ownedterritories = new List<string>();
@@ -596,41 +605,47 @@ public class territoryManager : MonoBehaviour
                         }
                     }
                     waitforAttack(sortedTerrsString, turn, ownedterritories[i]);
+                    yield return new WaitForSeconds(0.5f); 
                 }
             }
             gamePhase = GamePhase.Fortify;
             fortifyTerritoriesAI = true;
-            yield return new WaitForSeconds(1); 
         }
     }
 
     IEnumerator AIFortifyLogic()
     {
+        ///This Method is used to decide which territory if any to take troops
+        ///from to reinforce another territory for the current player.
+
         if(gameState == GameState.MainState && gamePhase == GamePhase.Fortify)
         {
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(0.5f);
             List<string> ownedterritories = new List<string>();
             ownedterritories = playerTerritories[turn];
             string donater = null;
             string receiver = null;
             int donateAmount = 0;
             int donatedAmount = 0;
+            //loop through player territories
             for (int counter = 0; counter < ownedterritories.Count; counter++)
             {
                 bool canDonate = true;
+                //create list to store attack target territories
                 List<string> attacktargets = attackDict[ownedterritories[counter]];
                 territoryHandler pScript = territoryDict[ownedterritories[counter]].GetComponent<territoryHandler>();
                 int donatableAmount = pScript.territory.troops;
+                //loop through attack targets
                 foreach (var eterr in attacktargets)
                 {
                     territoryHandler eScript = territoryDict[eterr].GetComponent<territoryHandler>();
                     if (pScript.territory.getPlayer() == eScript.territory.getPlayer()){
                         if (pScript.territory.troops - 1 < donatableAmount)
                         {
-                            // print(pScript.name + " has spare " + (pScript.territory.troops - (eScript.territory.troops + 1)));
                             donatableAmount = pScript.territory.troops - 1;
                         }
                     }
+                    //checks if the territory belongs to the an opponent
                     if (pScript.territory.getPlayer() != eScript.territory.getPlayer())
                     {
                         if (pScript.territory.troops <= eScript.territory.troops + 1)
@@ -639,7 +654,6 @@ public class territoryManager : MonoBehaviour
                         }
                         if (pScript.territory.troops - (eScript.territory.troops + 1) < donatableAmount && pScript.territory.troops - (eScript.territory.troops + 1) > 0)
                         {
-                            // print(pScript.name + " has spare " + (pScript.territory.troops - (eScript.territory.troops + 1)));
                             donatableAmount = pScript.territory.troops - (eScript.territory.troops + 1);
                         }
                     }
@@ -702,9 +716,8 @@ public class territoryManager : MonoBehaviour
             }
             //needs to change description text
             Scene currentScene = SceneManager.GetActiveScene();
-            descriptionTxt.text = "Assign you troops to prepare to attack";
             turn = nextTurn[turn];
-            playerTxt.color = nextTurnColor[turn];
+            playerTxt.color = playerTxtColor[turn];
             playerTxt.text = "Player: " + turn.ToString();
             gamePhase = GamePhase.Assign;
             playerTroops[turn] = newTroopAmount(turn);
@@ -716,6 +729,7 @@ public class territoryManager : MonoBehaviour
                 {
                     eanblePlayerTerr(turn);
                     mapState = saveMapState();
+                    descriptionTxt.text = "Assign your " + troopsleft + " troops to territories";
                 }
                 else
                 {
@@ -782,14 +796,14 @@ public class territoryManager : MonoBehaviour
                 {
                     EDiArray.Add(rnd.Next(1, 7));
                 }
-                print(string.Format("Here's the list: ({0}).", string.Join(", ", PDiArray)));
-                print(string.Format("Here's the list: ({0}).", string.Join(", ", EDiArray)));
+                // print(string.Format("Here's the list: ({0}).", string.Join(", ", PDiArray)));
+                // print(string.Format("Here's the list: ({0}).", string.Join(", ", EDiArray)));
                 EDiArray.Sort();
                 EDiArray.Reverse();
                 PDiArray.Sort();
                 PDiArray.Reverse();
-                print(string.Format("Here's the list: ({0}).", string.Join(", ", PDiArray)));
-                print(string.Format("Here's the list: ({0}).", string.Join(", ", EDiArray)));
+                // print(string.Format("Here's the list: ({0}).", string.Join(", ", PDiArray)));
+                // print(string.Format("Here's the list: ({0}).", string.Join(", ", EDiArray)));
                 int comparisions = math.min(pDiceAmount, eDiceAmount);
 
                 for (int i=0; i<comparisions; i++)
@@ -817,7 +831,7 @@ public class territoryManager : MonoBehaviour
                 }
 
             }
-            print(string.Format("Here's the list: ({0}).", string.Join(", ", attackStats)));
+            // print(string.Format("Here's the list: ({0}).", string.Join(", ", attackStats)));
             string attackerName = pterrhandler.territory.name;
             string defenderName = eterrhandler.territory.name;
             if (battleWon)
@@ -1146,6 +1160,7 @@ public class territoryManager : MonoBehaviour
                 }
             }
             troopsleft = playerTroops[turn];
+            descriptionTxt.text = "Assign your " + troopsleft + " troops to territories";
             cancelBtn.SetActive(false);
             transferBtn.SetActive(false);
         }
@@ -1156,6 +1171,7 @@ public class territoryManager : MonoBehaviour
                 restoreMapState(mapState);
                 eanblePlayerTerr(turn);
                 troopsleft = playerTroops[turn];
+                descriptionTxt.text = "Assign your " + troopsleft + " troops to territories";
                 cancelBtn.SetActive(false);
                 transferBtn.SetActive(false);
             }
@@ -1164,6 +1180,7 @@ public class territoryManager : MonoBehaviour
                 eanbleAttackPlayerTerr(turn);
                 cancelBtn.SetActive(false);
                 NextPhaseBtn.SetActive(true);
+                descriptionTxt.text = "Select the territory you want to attack with";
                 attacking = false;
                 tintTerritories();
                 cleanAttackPanel();
@@ -1172,6 +1189,7 @@ public class territoryManager : MonoBehaviour
             }
             else if(gamePhase == GamePhase.Fortify)
             {
+                descriptionTxt.text = "Select territory to move troops from";
                 restoreMapState(mapState);
                 terrSelected = false;
                 transferReady = false;
@@ -1353,6 +1371,7 @@ public class territoryManager : MonoBehaviour
         }
         if (gui.EUnitValue == 0)
         {
+            descriptionTxt.text = "Select territory to move troops between them";
             removeTerrFromPlayer(eScript.territory.getPlayer(), eScript.territory.name);
             List<Territory.thePlayers> removals = new List<Territory.thePlayers>();                    
             foreach (var key in playerTerritories.Keys)
@@ -1421,10 +1440,11 @@ public class territoryManager : MonoBehaviour
         Scene currentScene = SceneManager.GetActiveScene();
         if (gameState == GameState.StartSelect)
         {
+            removeTerrFromPlayer(Territory.thePlayers.UNCLAIMED, transferTarget.GetComponent<territoryHandler>().territory.name);
             addTerrToPlayer(turn, transferTarget.GetComponent<territoryHandler>().territory.name);
             playerTroops[turn] -= 1;
             turn = nextTurn[turn];
-            playerTxt.color = nextTurnColor[turn];
+            playerTxt.color = playerTxtColor[turn];
             playerTxt.text = "Player: " + turn.ToString();
             foreach (var terr in territoryList)
             {
@@ -1433,18 +1453,15 @@ public class territoryManager : MonoBehaviour
             cancelBtn.SetActive(false);
             transferBtn.SetActive(false);
             showAvailable();
-            foreach (var (key, value) in playerTerritories)
-            {
-                print(key);
-                print(string.Format("Here's the list: ({0}).", string.Join(", ", value)));
-            }
             if (getTerrtoriesOwnedNo(Territory.thePlayers.UNCLAIMED) == 0)
             {
                 gameState = GameState.StartAssign;
                 turn = Territory.thePlayers.PLAYER1;
+                playerTxt.color = playerTxtColor[turn];
                 playerTxt.text = "Player: " + turn.ToString();
                 troopsleft = playerTroops[turn];
-
+                descriptionTxt.text = "Assign your " + troopsleft + " troops to territories";
+                playerTerritories.Remove(Territory.thePlayers.UNCLAIMED);
                 eanblePlayerTerr(turn);
             }
             else
@@ -1467,7 +1484,8 @@ public class territoryManager : MonoBehaviour
             playerTroops[turn]  = troopsleft;
             turn = nextTurn[turn];
             troopsleft = playerTroops[turn];
-            playerTxt.color = nextTurnColor[turn];
+            descriptionTxt.text = "Assign your " + troopsleft + " troops to territories";
+            playerTxt.color = playerTxtColor[turn];
             playerTxt.text = "Player: " + turn.ToString();
             eanblePlayerTerr(turn);
             cancelBtn.SetActive(false);
@@ -1482,16 +1500,16 @@ public class territoryManager : MonoBehaviour
             }
             if (noTroopsLeft)
             {
-                print("notroops");
                 turn = Territory.thePlayers.PLAYER1;
                 eanblePlayerTerr(turn);
+                playerTxt.color = playerTxtColor[turn];
                 playerTxt.text = "Player: " + turn.ToString();
-                descriptionTxt.text = "Assign you troops to prepare to attack";
                 gameState = GameState.MainState;
                 gamePhase = GamePhase.Assign;
                 playerTroops[turn] = newTroopAmount(turn);
                 troopsleft = playerTroops[turn];
                 mapState = saveMapState();
+                descriptionTxt.text = "Assign your " + troopsleft + " troops to territories";
                 if(currentScene.name == "PlayerVsAI")
                 {
                     if(PlayerTypeDict[turn] == "ai")
@@ -1521,9 +1539,9 @@ public class territoryManager : MonoBehaviour
             if(gamePhase == GamePhase.Assign)
             {
                 playerTroops[turn] = troopsleft;
+                descriptionTxt.text = "Select the territory you want to attack with";
                 cancelBtn.SetActive(false);
                 transferBtn.SetActive(false);
-                descriptionTxt.text = "Select you territory then a territory to attack";
                 NextPhaseBtn.SetActive(true);
                 gamePhase = GamePhase.Attack;
                 eanbleAttackPlayerTerr(turn);
@@ -1531,6 +1549,7 @@ public class territoryManager : MonoBehaviour
             }
             else if(gamePhase == GamePhase.Attack)
             {
+                descriptionTxt.text = "Select the territory you want to attack with";
                 eanbleAttackPlayerTerr(turn);
                 transferReady = false;
                 transferBtn.SetActive(false);
@@ -1539,6 +1558,7 @@ public class territoryManager : MonoBehaviour
             }
             else if(gamePhase == GamePhase.Fortify)
             {
+                descriptionTxt.text = "Assign your " + troopsleft + " troops to territories";
                 nextPhase();
             }
         }
@@ -1549,7 +1569,7 @@ public class territoryManager : MonoBehaviour
         Scene currentScene = SceneManager.GetActiveScene();
         if (gamePhase == GamePhase.Attack)
         {
-            descriptionTxt.text = "Select territory to Fortify";
+            descriptionTxt.text = "Select territory to move troops from";
             gamePhase = GamePhase.Fortify;
             eanblePlayerTerr(turn);
             foreach (var terr in territoryList)
@@ -1567,9 +1587,8 @@ public class territoryManager : MonoBehaviour
         }
         else if (gamePhase == GamePhase.Fortify)
         {
-            descriptionTxt.text = "Assign you troops to prepare to attack";
             turn = nextTurn[turn];
-            playerTxt.color = nextTurnColor[turn];
+            playerTxt.color = playerTxtColor[turn];
             playerTxt.text = "Player: " + turn.ToString();
             terrSelected = false;
             transferReady = false;
@@ -1579,6 +1598,7 @@ public class territoryManager : MonoBehaviour
             gamePhase = GamePhase.Assign;
             playerTroops[turn] = newTroopAmount(turn);
             troopsleft = playerTroops[turn];
+            descriptionTxt.text = "Assign your " + troopsleft + " troops to territories";
             mapState = saveMapState();
             tintTerritories();
             if(currentScene.name == "PlayerVsAI")
